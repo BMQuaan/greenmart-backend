@@ -1,0 +1,9 @@
+{
+   "compilerOptions": {
+      "target": "ES6", // Cho phép phiên dịch code typescript sang kiển ES6
+      "module": "CommonJS",//CommonJS là tiêu chuân được sử dụng trong Node.js để làm việc với các module
+      "removeComments": true ,// xoá comments khi bien dịch sang file js
+      "esModuleInterop": true ,// Dùng được từ khoá import thay cho require
+      "outDir": "dist",//Bien dich vao thu muc dist
+   }
+}
