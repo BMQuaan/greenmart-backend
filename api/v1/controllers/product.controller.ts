@@ -2,10 +2,14 @@ import { Request, Response } from "express";
 import Product from "../../v1/models/product.model";
 import ProductCategory from "../../v1/models/product-category.model";
 import * as productsHelper from "../../../helper/products";
+import mongoose from "mongoose";
 
 // [GET] /products
 export const index = async (req: Request, res: Response): Promise<void> => {
-  const products = await Product.find();
+  const products = await Product.find({
+    productStatus: "active",
+    deleted: false
+  }).sort({ position: "desc" });
 
   const newProducts = productsHelper.priceNewProducts(products);
 
@@ -25,50 +29,63 @@ export const index = async (req: Request, res: Response): Promise<void> => {
 
 // [GET] /products/:slugCategory
 export const category = async (req: Request<{ slugCategory: string }>, res: Response): Promise<void> => {
-  const slugCategory = req.params.slugCategory;
+  try {
+    const { slugCategory } = req.params;
 
-  const category = await ProductCategory.findOne({
-    slug: slugCategory,
-    deleted: false,
-    status: "active",
-  });
-
-  if (!category) {
-    return res.redirect("/");
-  }
-
-  const getSubCategory = async (parentId: string): Promise<any[]> => {
-    const subs = await ProductCategory.find({
-      parent_id: parentId,
-      status: "active",
+    const category = await ProductCategory.findOne({
+      categorySlug: slugCategory,
       deleted: false,
+      categoryStatus: "active",
     });
 
-    let allSub = [...subs];
-
-    for (const sub of subs) {
-      const childs = await getSubCategory(sub.id);
-      allSub = allSub.concat(childs);
+    if (!category) {
+      res.status(404).json({
+        code: 404,
+        message: "Category not found",
+      });
     }
 
-    return allSub;
-  };
+    const getSubCategoryIds = async (parentId: string): Promise<string[]> => {
+      const subs = await ProductCategory.find({
+        categoryParentID: parentId,
+        categoryStatus: "active",
+        deleted: false,
+      });
 
-  const listSubCategory = await getSubCategory(category.id);
-  const listSubCategoryId = listSubCategory.map(item => item.id);
+      let ids = subs.map(sub => sub.id);
 
-  const products = await Product.find({
-    product_category_id: { $in: [category.id, ...listSubCategoryId] },
-    status: "active",
-    deleted: false
-  }).sort({ position: "desc" });
+      for (const sub of subs) {
+        const childIds = await getSubCategoryIds(sub.id);
+        ids = ids.concat(childIds);
+      }
 
-  const newProducts = productsHelper.priceNewProducts(products);
+      return ids;
+    };
 
-  res.render("client/pages/products/index", {
-    pageTitle: category.categoryName,
-    products: newProducts
-  });
+    const subCategoryIds = await getSubCategoryIds(category.id);
+
+    // const allCategoryIds = [category.id, ...subCategoryIds].map(id => new mongoose.Types.ObjectId(id));
+    
+    const products = await Product.find({
+      categoryID: { $in: [category.id, ...subCategoryIds] },
+      productStatus: "active",
+      deleted: false,
+    }).sort({ productPosition: -1 });
+
+    const newProducts = productsHelper.priceNewProducts(products);
+
+    res.json({
+      code: 200,
+      message: `Products in category ${category.categoryName}`,
+      info: newProducts,
+    });
+  } catch (error) {
+    console.error("Error in category:", error);
+    res.status(500).json({
+      code: 500,
+      message: "Server error",
+    });
+  }
 };
 
 // [GET] /products/detail/:slugProduct
