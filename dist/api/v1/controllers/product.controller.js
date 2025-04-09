@@ -50,7 +50,10 @@ const product_model_1 = __importDefault(require("../../v1/models/product.model")
 const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
 const productsHelper = __importStar(require("../../../helper/products"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const products = yield product_model_1.default.find();
+    const products = yield product_model_1.default.find({
+        productStatus: "active",
+        deleted: false
+    }).sort({ position: "desc" });
     const newProducts = productsHelper.priceNewProducts(products);
     try {
         res.json({
@@ -68,40 +71,52 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.index = index;
 const category = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const slugCategory = req.params.slugCategory;
-    const category = yield product_category_model_1.default.findOne({
-        slug: slugCategory,
-        deleted: false,
-        status: "active",
-    });
-    if (!category) {
-        return res.redirect("/");
-    }
-    const getSubCategory = (parentId) => __awaiter(void 0, void 0, void 0, function* () {
-        const subs = yield product_category_model_1.default.find({
-            parent_id: parentId,
-            status: "active",
+    try {
+        const { slugCategory } = req.params;
+        const category = yield product_category_model_1.default.findOne({
+            categorySlug: slugCategory,
             deleted: false,
+            categoryStatus: "active",
         });
-        let allSub = [...subs];
-        for (const sub of subs) {
-            const childs = yield getSubCategory(sub.id);
-            allSub = allSub.concat(childs);
+        if (!category) {
+            res.status(404).json({
+                code: 404,
+                message: "Category not found",
+            });
         }
-        return allSub;
-    });
-    const listSubCategory = yield getSubCategory(category.id);
-    const listSubCategoryId = listSubCategory.map(item => item.id);
-    const products = yield product_model_1.default.find({
-        product_category_id: { $in: [category.id, ...listSubCategoryId] },
-        status: "active",
-        deleted: false
-    }).sort({ position: "desc" });
-    const newProducts = productsHelper.priceNewProducts(products);
-    res.render("client/pages/products/index", {
-        pageTitle: category.categoryName,
-        products: newProducts
-    });
+        const getSubCategoryIds = (parentId) => __awaiter(void 0, void 0, void 0, function* () {
+            const subs = yield product_category_model_1.default.find({
+                categoryParentID: parentId,
+                categoryStatus: "active",
+                deleted: false,
+            });
+            let ids = subs.map(sub => sub.id);
+            for (const sub of subs) {
+                const childIds = yield getSubCategoryIds(sub.id);
+                ids = ids.concat(childIds);
+            }
+            return ids;
+        });
+        const subCategoryIds = yield getSubCategoryIds(category.id);
+        const products = yield product_model_1.default.find({
+            categoryID: { $in: [category.id, ...subCategoryIds] },
+            productStatus: "active",
+            deleted: false,
+        }).sort({ productPosition: -1 });
+        const newProducts = productsHelper.priceNewProducts(products);
+        res.json({
+            code: 200,
+            message: `Products in category ${category.categoryName}`,
+            info: newProducts,
+        });
+    }
+    catch (error) {
+        console.error("Error in category:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Server error",
+        });
+    }
 });
 exports.category = category;
 const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
