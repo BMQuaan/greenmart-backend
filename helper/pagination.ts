@@ -9,11 +9,11 @@ export const paginationHelper = (objectPagination: ObjectPagination,
    query: Record<string, any>, 
    countRecords :number
    ) : ObjectPagination => {
-  if (query.page) {
-    objectPagination.currentPage = parseInt(query.page);
+  if (query.currentPage) {
+    objectPagination.currentPage = parseInt(query.currentPage);
   }
-  if (query.limit) {
-    objectPagination.limitItems = parseInt(query.limit);
+  if (query.limitItems) {
+    objectPagination.limitItems = parseInt(query.limitItems);
   }
 
   objectPagination.skip = (objectPagination.currentPage - 1) * objectPagination.limitItems;
