@@ -3,6 +3,7 @@ interface ObjectPagination {
   limitItems: number;
   skip?: number;
   totalPage?: number;
+  totalItem?: number;
 }
 
 export const paginationHelper = (objectPagination: ObjectPagination,

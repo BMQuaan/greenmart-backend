@@ -42,6 +42,8 @@ export const index = async (req: Request, res: Response): Promise<void> => {
 
     const countProducts = await Product.countDocuments(find);
     const objectPagination = paginationHelper(initPagination, req.query, countProducts);
+    objectPagination.totalItem = countProducts;
+
 
     // Sort
     const sort: Record<string, any> = {};
@@ -137,7 +139,8 @@ export const category = async (req: Request<{ slugCategory: string }>, res: Resp
     
     const countProducts = await Product.countDocuments(find);
     const objectPagination = paginationHelper(initPagination, req.query, countProducts);
-    
+    objectPagination.totalItem = countProducts;
+
     // Sort
     const sort: Record<string, any> = {};
     if (req.query.sortKey && req.query.sortValue) {

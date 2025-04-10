@@ -67,6 +67,7 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         };
         const countProducts = yield product_model_1.default.countDocuments(find);
         const objectPagination = (0, pagination_1.paginationHelper)(initPagination, req.query, countProducts);
+        objectPagination.totalItem = countProducts;
         const sort = {};
         if (req.query.sortKey && req.query.sortValue) {
             sort[req.query.sortKey.toString()] = req.query.sortValue;
@@ -143,6 +144,7 @@ const category = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         };
         const countProducts = yield product_model_1.default.countDocuments(find);
         const objectPagination = (0, pagination_1.paginationHelper)(initPagination, req.query, countProducts);
+        objectPagination.totalItem = countProducts;
         const sort = {};
         if (req.query.sortKey && req.query.sortValue) {
             sort[req.query.sortKey.toString()] = req.query.sortValue;
