@@ -55,6 +55,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
     }
 
     const products = await Product.find(find)
+      .select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID")
       .sort(sort)
       .limit(objectPagination.limitItems)
       .skip(objectPagination.skip);
@@ -72,7 +73,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
 
     res.json({
       code: 200,
-      message: "Danh sách sản phẩm",
+      message: "Products List",
       info: newProducts,
       pagination: objectPagination,
     });
@@ -80,7 +81,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
     console.error("Error in product index:", error);
     res.status(500).json({
       code: 500,
-      message: "Lỗi server",
+      message: "Server error",
     });
   }
 };
@@ -101,6 +102,7 @@ export const category = async (req: Request<{ slugCategory: string }>, res: Resp
         code: 404,
         message: "Category not found",
       });
+      return;
     }
 
     const getSubCategoryIds = async (parentId: string): Promise<string[]> => {
@@ -151,9 +153,11 @@ export const category = async (req: Request<{ slugCategory: string }>, res: Resp
 
     // Query
     const products = await Product.find(find)
+      .select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID")
       .sort(sort)
       .limit(objectPagination.limitItems)
       .skip(objectPagination.skip);
+      
 
     let newProducts: IProductExtended[] = productsHelper.priceNewProducts(products);
 

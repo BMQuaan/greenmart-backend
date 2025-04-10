@@ -76,6 +76,7 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             sort.productPosition = "desc";
         }
         const products = yield product_model_1.default.find(find)
+            .select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID")
             .sort(sort)
             .limit(objectPagination.limitItems)
             .skip(objectPagination.skip);
@@ -90,7 +91,7 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         res.json({
             code: 200,
-            message: "Danh sách sản phẩm",
+            message: "Products List",
             info: newProducts,
             pagination: objectPagination,
         });
@@ -99,7 +100,7 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.error("Error in product index:", error);
         res.status(500).json({
             code: 500,
-            message: "Lỗi server",
+            message: "Server error",
         });
     }
 });
@@ -117,6 +118,7 @@ const category = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 code: 404,
                 message: "Category not found",
             });
+            return;
         }
         const getSubCategoryIds = (parentId) => __awaiter(void 0, void 0, void 0, function* () {
             const subs = yield product_category_model_1.default.find({
@@ -153,6 +155,7 @@ const category = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             sort.productPosition = "desc";
         }
         const products = yield product_model_1.default.find(find)
+            .select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID")
             .sort(sort)
             .limit(objectPagination.limitItems)
             .skip(objectPagination.skip);

@@ -14,23 +14,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.index = void 0;
 const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
+const buildCategoryTree = (categories, parentId = null) => {
+    return categories
+        .filter(cat => String(cat.categoryParentID) === String(parentId))
+        .map(cat => (Object.assign(Object.assign({}, cat), { children: buildCategoryTree(categories, cat._id) })));
+};
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const productscategory = yield product_category_model_1.default.find({
-        categoryStatus: "active",
-        deleted: false
-    }).sort({ position: "desc" });
-    req["productscategory"] = productscategory;
     try {
-        res.json({
+        const categories = yield product_category_model_1.default.find({
+            categoryStatus: "active",
+            deleted: false,
+        })
+            .select("_id categoryName categorySlug categoryImage categoryParentID")
+            .sort({ categoryPosition: -1 })
+            .lean();
+        const categoryTree = buildCategoryTree(categories);
+        res.status(200).json({
             code: 200,
-            message: "All products-category",
-            info: req["productscategory"],
+            message: "All products-category (tree format)",
+            info: categoryTree,
         });
     }
     catch (error) {
-        res.json({
-            code: 400,
-            message: "Error",
+        console.error("Error building category tree:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Internal server error",
         });
     }
 });
