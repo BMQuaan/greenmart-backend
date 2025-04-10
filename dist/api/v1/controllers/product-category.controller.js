@@ -12,13 +12,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.categoryTree = exports.index = void 0;
+exports.categoryTree = exports.categoryTrees = exports.index = void 0;
 const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productscategory = yield product_category_model_1.default.find({
         categoryStatus: "active",
         deleted: false
-    }).sort({ position: "desc" });
+    })
+        .select("_id categoryName categorySlug categoryImage categoryParentID")
+        .sort({ position: "desc" });
     try {
         res.json({
             code: 200,
@@ -39,7 +41,7 @@ const buildCategoryTree = (categories, parentId = null) => {
         .filter(cat => String(cat.categoryParentID) === String(parentId))
         .map(cat => (Object.assign(Object.assign({}, cat), { children: buildCategoryTree(categories, cat._id) })));
 };
-const categoryTree = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const categoryTrees = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const categories = yield product_category_model_1.default.find({
             categoryStatus: "active",
@@ -57,6 +59,45 @@ const categoryTree = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
     catch (error) {
         console.error("Error building category tree:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Internal server error",
+        });
+    }
+});
+exports.categoryTrees = categoryTrees;
+const categoryTree = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { slugCategory } = req.params;
+        const rootCategory = yield product_category_model_1.default.findOne({
+            categorySlug: slugCategory,
+            categoryStatus: "active",
+            deleted: false,
+        }).lean();
+        if (!rootCategory) {
+            res.status(404).json({
+                code: 404,
+                message: "Category not found",
+            });
+            return;
+        }
+        const categories = yield product_category_model_1.default.find({
+            categoryStatus: "active",
+            deleted: false,
+        })
+            .select("_id categoryName categorySlug categoryImage categoryParentID")
+            .sort({ categoryPosition: -1 })
+            .lean();
+        const childrenTree = buildCategoryTree(categories, rootCategory._id);
+        const result = Object.assign(Object.assign({}, rootCategory), { children: childrenTree });
+        res.status(200).json({
+            code: 200,
+            message: `Tree for category '${slugCategory}'`,
+            info: result,
+        });
+    }
+    catch (error) {
+        console.error("Error building category tree by slug:", error);
         res.status(500).json({
             code: 500,
             message: "Internal server error",

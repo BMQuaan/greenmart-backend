@@ -6,7 +6,9 @@ export const index = async (req: Request, res: Response): Promise<void> => {
   const productscategory = await ProductCategory.find({
     categoryStatus: "active",
     deleted: false
-  }).sort({ position: "desc" });
+  })
+  .select("_id categoryName categorySlug categoryImage categoryParentID")
+  .sort({ position: "desc" });
 
   try {
     res.json({
@@ -22,7 +24,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// GET /products-category/categoryttree
+// GET /products-category/categorytree
 const buildCategoryTree = (categories: any[], parentId: any = null): any[] => {
   return categories
     .filter(cat => String(cat.categoryParentID) === String(parentId))
@@ -32,7 +34,7 @@ const buildCategoryTree = (categories: any[], parentId: any = null): any[] => {
     }));
 };
 
-export const categoryTree = async (req: Request, res: Response): Promise<void> => {
+export const categoryTrees = async (req: Request, res: Response): Promise<void> => {
   try {
     const categories = await ProductCategory.find({
       categoryStatus: "active",
@@ -51,6 +53,54 @@ export const categoryTree = async (req: Request, res: Response): Promise<void> =
     });
   } catch (error) {
     console.error("Error building category tree:", error);
+    res.status(500).json({
+      code: 500,
+      message: "Internal server error",
+    });
+  }
+};
+
+// GET /products-category/categorytree/:slugCategory
+export const categoryTree = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { slugCategory } = req.params;
+
+    const rootCategory = await ProductCategory.findOne({
+      categorySlug: slugCategory,
+      categoryStatus: "active",
+      deleted: false,
+    }).lean();
+
+    if (!rootCategory) {
+      res.status(404).json({
+        code: 404,
+        message: "Category not found",
+      });
+      return;
+    }
+
+    const categories = await ProductCategory.find({
+      categoryStatus: "active",
+      deleted: false,
+    })
+      .select("_id categoryName categorySlug categoryImage categoryParentID")
+      .sort({ categoryPosition: -1 })
+      .lean();
+
+    const childrenTree = buildCategoryTree(categories, rootCategory._id);
+
+    const result = {
+      ...rootCategory,
+      children: childrenTree,
+    };
+
+    res.status(200).json({
+      code: 200,
+      message: `Tree for category '${slugCategory}'`,
+      info: result,
+    });
+  } catch (error) {
+    console.error("Error building category tree by slug:", error);
     res.status(500).json({
       code: 500,
       message: "Internal server error",
