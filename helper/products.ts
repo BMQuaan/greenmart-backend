@@ -6,7 +6,7 @@ interface IProductWithPriceNew extends IProduct {
 
 export const priceNewProducts = (products: IProduct[]): IProductWithPriceNew[] => {
   return products.map((item) => {
-    const priceNew = ((item.productPrice * (100 - item.productDiscountPercentage)) / 100).toFixed(0);
+    const priceNew = ((item.productPrice * (100 - item.productDiscountPercentage)) / 100).toFixed(2);
     return {
       ...item.toObject(),
       priceNew
@@ -15,7 +15,7 @@ export const priceNewProducts = (products: IProduct[]): IProductWithPriceNew[] =
 };
 
 export const priceNewProduct = (product: IProduct): string => {
-  const priceNew = ((product.productPrice * (100 - product.productDiscountPercentage)) / 100).toFixed(0);
+  const priceNew = ((product.productPrice * (100 - product.productDiscountPercentage)) / 100).toFixed(2);
   return priceNew;
 };
 
