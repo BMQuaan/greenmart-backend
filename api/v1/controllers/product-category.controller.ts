@@ -2,29 +2,27 @@ import { Request, Response } from "express";
 import ProductCategory from "../../v1/models/product-category.model";
 
 // [GET] /products-category
-// export const index = async (req: Request, res: Response): Promise<void> => {
-//   const productscategory = await ProductCategory.find({
-//     categoryStatus: "active",
-//     deleted: false
-//   }).sort({ position: "desc" });
+export const index = async (req: Request, res: Response): Promise<void> => {
+  const productscategory = await ProductCategory.find({
+    categoryStatus: "active",
+    deleted: false
+  }).sort({ position: "desc" });
 
+  try {
+    res.json({
+      code: 200,
+      message: "All products-category",
+      info: productscategory,
+    });
+  } catch (error) {
+    res.json({
+      code: 400,
+      message: "Error",
+    });
+  }
+};
 
-//   req["productscategory"] = productscategory;
-
-//   try {
-//     res.json({
-//       code: 200,
-//       message: "All products-category",
-//       info: req["productscategory"],
-//     });
-//   } catch (error) {
-//     res.json({
-//       code: 400,
-//       message: "Error",
-//     });
-//   }
-// };
-
+// GET /products-category/categoryttree
 const buildCategoryTree = (categories: any[], parentId: any = null): any[] => {
   return categories
     .filter(cat => String(cat.categoryParentID) === String(parentId))
@@ -34,7 +32,7 @@ const buildCategoryTree = (categories: any[], parentId: any = null): any[] => {
     }));
 };
 
-export const index = async (req: Request, res: Response): Promise<void> => {
+export const categoryTree = async (req: Request, res: Response): Promise<void> => {
   try {
     const categories = await ProductCategory.find({
       categoryStatus: "active",

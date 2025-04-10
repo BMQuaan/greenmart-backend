@@ -12,14 +12,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.index = void 0;
+exports.categoryTree = exports.index = void 0;
 const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
+const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const productscategory = yield product_category_model_1.default.find({
+        categoryStatus: "active",
+        deleted: false
+    }).sort({ position: "desc" });
+    try {
+        res.json({
+            code: 200,
+            message: "All products-category",
+            info: productscategory,
+        });
+    }
+    catch (error) {
+        res.json({
+            code: 400,
+            message: "Error",
+        });
+    }
+});
+exports.index = index;
 const buildCategoryTree = (categories, parentId = null) => {
     return categories
         .filter(cat => String(cat.categoryParentID) === String(parentId))
         .map(cat => (Object.assign(Object.assign({}, cat), { children: buildCategoryTree(categories, cat._id) })));
 };
-const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const categoryTree = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const categories = yield product_category_model_1.default.find({
             categoryStatus: "active",
@@ -43,4 +63,4 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }
 });
-exports.index = index;
+exports.categoryTree = categoryTree;
