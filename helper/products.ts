@@ -18,3 +18,12 @@ export const priceNewProduct = (product: IProduct): string => {
   const priceNew = ((product.productPrice * (100 - product.productDiscountPercentage)) / 100).toFixed(0);
   return priceNew;
 };
+
+// export const priceNewProduct = (product: IProduct): IProductWithPriceNew => {
+//   const priceNew = ((product.productPrice * (100 - product.productDiscountPercentage)) / 100).toFixed(0);
+
+//   return {
+//     ...product.toObject(),
+//     priceNew
+//   };
+// };

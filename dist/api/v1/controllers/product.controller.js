@@ -49,23 +49,56 @@ exports.detail = exports.category = exports.index = void 0;
 const product_model_1 = __importDefault(require("../../v1/models/product.model"));
 const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
 const productsHelper = __importStar(require("../../../helper/products"));
+const pagination_1 = require("../../../helper/pagination");
+const search_1 = require("../../../helper/search");
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const products = yield product_model_1.default.find({
-        productStatus: "active",
-        deleted: false
-    }).sort({ position: "desc" });
-    const newProducts = productsHelper.priceNewProducts(products);
     try {
+        const objectSearch = (0, search_1.SearchHelper)(req.query);
+        const find = {
+            deleted: false,
+            productStatus: "active",
+        };
+        if (req.query.keyword) {
+            find.productName = objectSearch.regex;
+        }
+        const initPagination = {
+            currentPage: 1,
+            limitItems: 10,
+        };
+        const countProducts = yield product_model_1.default.countDocuments(find);
+        const objectPagination = (0, pagination_1.paginationHelper)(initPagination, req.query, countProducts);
+        const sort = {};
+        if (req.query.sortKey && req.query.sortValue) {
+            sort[req.query.sortKey.toString()] = req.query.sortValue;
+        }
+        else {
+            sort.productPosition = "desc";
+        }
+        const products = yield product_model_1.default.find(find)
+            .sort(sort)
+            .limit(objectPagination.limitItems)
+            .skip(objectPagination.skip);
+        let newProducts = productsHelper.priceNewProducts(products);
+        if (req.query.sortKey === "productPrice" && req.query.sortValue) {
+            const direction = req.query.sortValue === "asc" ? 1 : -1;
+            newProducts = newProducts.sort((a, b) => {
+                const aPrice = parseFloat(a.priceNew || "0");
+                const bPrice = parseFloat(b.priceNew || "0");
+                return (aPrice - bPrice) * direction;
+            });
+        }
         res.json({
             code: 200,
-            message: "All product",
+            message: "Danh sách sản phẩm",
             info: newProducts,
+            pagination: objectPagination,
         });
     }
     catch (error) {
-        res.json({
-            code: 400,
-            message: "Error",
+        console.error("Error in product index:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Lỗi server",
         });
     }
 });
@@ -98,16 +131,43 @@ const category = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return ids;
         });
         const subCategoryIds = yield getSubCategoryIds(category.id);
-        const products = yield product_model_1.default.find({
-            categoryID: { $in: [category.id, ...subCategoryIds] },
+        const allCategoryIds = [category.id, ...subCategoryIds];
+        const find = {
+            categoryID: { $in: allCategoryIds },
             productStatus: "active",
             deleted: false,
-        }).sort({ productPosition: -1 });
-        const newProducts = productsHelper.priceNewProducts(products);
+        };
+        const initPagination = {
+            currentPage: 1,
+            limitItems: 10,
+        };
+        const countProducts = yield product_model_1.default.countDocuments(find);
+        const objectPagination = (0, pagination_1.paginationHelper)(initPagination, req.query, countProducts);
+        const sort = {};
+        if (req.query.sortKey && req.query.sortValue) {
+            sort[req.query.sortKey.toString()] = req.query.sortValue;
+        }
+        else {
+            sort.productPosition = "desc";
+        }
+        const products = yield product_model_1.default.find(find)
+            .sort(sort)
+            .limit(objectPagination.limitItems)
+            .skip(objectPagination.skip);
+        let newProducts = productsHelper.priceNewProducts(products);
+        if (req.query.sortKey === "productPrice" && req.query.sortValue) {
+            const direction = req.query.sortValue === "asc" ? 1 : -1;
+            newProducts = newProducts.sort((a, b) => {
+                const aPrice = parseFloat(a.priceNew || "0");
+                const bPrice = parseFloat(b.priceNew || "0");
+                return (aPrice - bPrice) * direction;
+            });
+        }
         res.json({
             code: 200,
             message: `Products in category ${category.categoryName}`,
             info: newProducts,
+            pagination: objectPagination,
         });
     }
     catch (error) {
@@ -123,30 +183,43 @@ const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const slug = req.params.slugProduct;
         const product = yield product_model_1.default.findOne({
-            slug,
+            productSlug: slug,
             deleted: false,
-            status: "active"
+            productStatus: "active"
         });
-        if (!product)
-            return res.redirect("/");
-        if (product.id) {
+        if (!product) {
+            res.json({
+                code: 404,
+                message: "Product not found",
+            });
+            return;
+        }
+        const productObj = product.toObject();
+        if (productObj.categoryID) {
             const category = yield product_category_model_1.default.findOne({
-                _id: product.id,
+                _id: productObj.categoryID,
                 deleted: false,
-                status: "active"
+                categoryStatus: "active"
             });
             if (category) {
-                product.category = category;
+                productObj.category = category;
             }
         }
-        product.priceNew = productsHelper.priceNewProduct(product);
-        res.render("client/pages/products/detail", {
-            pageTitle: "Chi tiết sản phẩm",
-            product
+        productObj.priceNew = productsHelper.priceNewProduct(product);
+        res.json({
+            code: 200,
+            message: "Product detail",
+            info: productObj
         });
+        return;
     }
     catch (error) {
-        res.redirect("/");
+        console.error("Error in detail:", error);
+        res.json({
+            code: 500,
+            message: "Internal Server Error",
+        });
+        return;
     }
 });
 exports.detail = detail;

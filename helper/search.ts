@@ -3,7 +3,7 @@ interface ObjectSearch {
   regex?: RegExp;
 }
 
-export const SearchHelper = (query) : ObjectSearch => {
+export const SearchHelper = (query: Record<string, any>) : ObjectSearch => {
   let objectSearch: ObjectSearch = {
     keyword: "",
   };

@@ -6,7 +6,7 @@ interface ObjectPagination {
 }
 
 export const paginationHelper = (objectPagination: ObjectPagination,
-   query, 
+   query: Record<string, any>, 
    countRecords :number
    ) : ObjectPagination => {
   if (query.page) {
