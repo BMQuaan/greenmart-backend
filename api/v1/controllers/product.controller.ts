@@ -197,7 +197,7 @@ export const detail = async (
       productSlug: slug,
       deleted: false,
       productStatus: "active"
-    });
+    }).select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID");
 
     if (!product) {
       res.json({
@@ -215,7 +215,7 @@ export const detail = async (
         _id: productObj.categoryID,
         deleted: false,
         categoryStatus: "active"
-      });
+      }).select("_id categoryName categorySlug categoryImage categoryParentID");
 
       if (category) {
         productObj.category = category;

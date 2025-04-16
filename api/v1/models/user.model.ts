@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import {generateRandomString} from "../../../helper/generate";
 
 
 export interface IUser extends Document {
@@ -9,10 +8,15 @@ export interface IUser extends Document {
   userPhone?: string;
   userAvatar?: string;
   userAddress?: string;
-  userToken?: string;
-  userIsDeleted: boolean;
+  userRefreshTokens: {
+    token: string;
+    device?: string;
+    createdAt: Date;
+    expiresAt?: Date;
+  }[];
+  deleted: boolean;
   userStatus: "active" | "inactive";
-  deleteBy?: Types.ObjectId; // Ref tới Staff
+  deleteBy?: Types.ObjectId; 
   updateBy?: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
@@ -26,11 +30,16 @@ const userSchema = new Schema<IUser>(
     userPhone: { type: String },
     userAvatar: { type: String },
     userAddress: { type: String },
-    userToken: {
-      type: String,
-      default: () => generateRandomString(30),
-    },
-    userIsDeleted: { type: Boolean, default: false },
+    userRefreshTokens: [
+      {
+        token: { type: String, required: true },
+        device: { type: String }, 
+        createdAt: { type: Date, default: Date.now },
+        expiresAt: { type: Date }
+      }
+    ]
+    ,
+    deleted: { type: Boolean, default: false },
     userStatus: {
       type: String,
       enum: ["active", "inactive"],

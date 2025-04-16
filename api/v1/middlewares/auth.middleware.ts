@@ -1,30 +1,30 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import User from "../models/user.model";
+import jwt from "jsonwebtoken";
 
-export const requireAuth = async (
-   req: Request, 
-   res: Response, 
-   next: NextFunction): Promise<void> => {
-  if (req.headers.authorization) {
-    const token = req.headers.authorization.split(" ")[1];
+export const authenticateToken =async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) return res.status(401).json({ message: "Access token not provided" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
 
     const user = await User.findOne({
-      userToken: token,
-      userIsDeleted: false,
-    });
+      _id: decoded.id,
+      deleted: false,
+      userStatus: "active"
+    }).select("userName userEmail userPhone userAvatar userAddress userStatus deleted");
+    
     if (!user) {
-      res.json({
-        code: 403,
-        message: "Không có quyền truy cập",
-      });
-    } else {
-      req["infoUser"] = user;
-      next();
-    }
-  } else {
-    res.json({
-      code: 403,
-      message: "Không có quyền truy cập",
-    });
+      return res.status(403).json({ message: "Account is invalid or has been disabled" });
+    }    
+
+    req["infoUser"] = user;
+    next();
+  } catch (err) {
+    console.error("Middleware auth error:", err);
+    return res.status(403).json({ message: "Invalid or expired access token" });
   }
 };

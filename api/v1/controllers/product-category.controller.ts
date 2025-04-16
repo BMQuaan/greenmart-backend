@@ -69,7 +69,7 @@ export const categoryTree = async (req: Request, res: Response): Promise<void> =
       categorySlug: slugCategory,
       categoryStatus: "active",
       deleted: false,
-    }).lean();
+    }).select("_id categoryName categorySlug categoryImage categoryParentID") .lean();
 
     if (!rootCategory) {
       res.status(404).json({
