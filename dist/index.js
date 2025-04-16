@@ -47,18 +47,9 @@ dotenv_1.default.config();
 database.connect();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
-const allowedOrigins = [
-    "https://your-frontend.vercel.app",
-    "http://localhost:3000"
-];
 app.use((0, cors_1.default)({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        }
-        else {
-            callback(new Error("Not allowed by CORS"));
-        }
+    origin: (origin, callback) => {
+        callback(null, true);
     },
     credentials: true
 }));
