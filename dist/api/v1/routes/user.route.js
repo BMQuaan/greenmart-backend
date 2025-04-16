@@ -40,5 +40,7 @@ const authMiddleware = __importStar(require("../middlewares/auth.middleware"));
 const router = (0, express_1.Router)();
 router.post("/register", controller.register);
 router.post("/login", controller.login);
-router.get("/detail", authMiddleware.requireAuth, controller.detail);
+router.post("/logout", controller.logout);
+router.get("/detail", authMiddleware.authenticateToken, controller.detail);
+router.get("/refresh-token", controller.refreshAccessToken);
 exports.userRoutes = router;

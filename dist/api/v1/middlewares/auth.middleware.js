@@ -12,31 +12,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireAuth = void 0;
+exports.authenticateToken = void 0;
 const user_model_1 = __importDefault(require("../models/user.model"));
-const requireAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    if (req.headers.authorization) {
-        const token = req.headers.authorization.split(" ")[1];
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const authenticateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+    if (!token)
+        return res.status(401).json({ message: "Access token not provided" });
+    try {
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         const user = yield user_model_1.default.findOne({
-            userToken: token,
-            userIsDeleted: false,
-        });
+            _id: decoded.id,
+            deleted: false,
+            userStatus: "active"
+        }).select("userName userEmail userPhone userAvatar userAddress userStatus deleted");
         if (!user) {
-            res.json({
-                code: 403,
-                message: "Không có quyền truy cập",
-            });
+            return res.status(403).json({ message: "Account is invalid or has been disabled" });
         }
-        else {
-            req["infoUser"] = user;
-            next();
-        }
+        req["infoUser"] = user;
+        next();
     }
-    else {
-        res.json({
-            code: 403,
-            message: "Không có quyền truy cập",
-        });
+    catch (err) {
+        console.error("Middleware auth error:", err);
+        return res.status(403).json({ message: "Invalid or expired access token" });
     }
 });
-exports.requireAuth = requireAuth;
+exports.authenticateToken = authenticateToken;

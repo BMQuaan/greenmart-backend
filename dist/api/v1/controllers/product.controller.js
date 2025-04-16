@@ -191,7 +191,7 @@ const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             productSlug: slug,
             deleted: false,
             productStatus: "active"
-        });
+        }).select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID");
         if (!product) {
             res.json({
                 code: 404,
@@ -205,7 +205,7 @@ const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 _id: productObj.categoryID,
                 deleted: false,
                 categoryStatus: "active"
-            });
+            }).select("_id categoryName categorySlug categoryImage categoryParentID");
             if (category) {
                 productObj.category = category;
             }

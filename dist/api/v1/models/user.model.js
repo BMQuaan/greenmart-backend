@@ -34,7 +34,6 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const generate_1 = require("../../../helper/generate");
 const userSchema = new mongoose_1.Schema({
     userName: { type: String, required: true },
     userEmail: { type: String, required: true, unique: true },
@@ -42,11 +41,15 @@ const userSchema = new mongoose_1.Schema({
     userPhone: { type: String },
     userAvatar: { type: String },
     userAddress: { type: String },
-    userToken: {
-        type: String,
-        default: () => (0, generate_1.generateRandomString)(30),
-    },
-    userIsDeleted: { type: Boolean, default: false },
+    userRefreshTokens: [
+        {
+            token: { type: String, required: true },
+            device: { type: String },
+            createdAt: { type: Date, default: Date.now },
+            expiresAt: { type: Date }
+        }
+    ],
+    deleted: { type: Boolean, default: false },
     userStatus: {
         type: String,
         enum: ["active", "inactive"],

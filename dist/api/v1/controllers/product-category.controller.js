@@ -73,7 +73,7 @@ const categoryTree = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             categorySlug: slugCategory,
             categoryStatus: "active",
             deleted: false,
-        }).lean();
+        }).select("_id categoryName categorySlug categoryImage categoryParentID").lean();
         if (!rootCategory) {
             res.status(404).json({
                 code: 404,
