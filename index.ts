@@ -15,10 +15,22 @@ const port:string | number = process.env.PORT || 3000;
 //   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 // };
 // app.use(cors(corsOptions));
+const allowedOrigins = [
+  "https://your-frontend.vercel.app",
+  "http://localhost:3000"
+];
+
 app.use(cors({
-  origin: "http://localhost:3000", // địa chỉ FE của bạn
-  credentials: true, // Cho phép gửi cookie
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
 }));
+
  
 // parse application/json
 app.use(bodyParser.json())
