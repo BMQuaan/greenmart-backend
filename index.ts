@@ -15,13 +15,7 @@ const port:string | number = process.env.PORT || 3000;
 //   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 // };
 // app.use(cors(corsOptions));
-app.use(cors({
-  origin: (origin, callback) => {
-    callback(null, true); // Cho phép tất cả origin
-  },
-  credentials: true
-}));
-
+app.use(cors());
  
 // parse application/json
 app.use(bodyParser.json())
