@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import ProductCategory from "../../v1/models/product-category.model";
+import ProductCategory from "../../models/product-category.model";
 
 // [GET] /products-category
-export const index = async (req: Request, res: Response): Promise<void> => {
+export const index = async (req: Request, res: Response) => {
   const productscategory = await ProductCategory.find({
     categoryStatus: "active",
     deleted: false
@@ -25,7 +25,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
 };
 
 // GET /products-category/categorytree
-const buildCategoryTree = (categories: any[], parentId: any = null): any[] => {
+const buildCategoryTree = (categories: any[], parentId: any = null) => {
   return categories
     .filter(cat => String(cat.categoryParentID) === String(parentId))
     .map(cat => ({
@@ -61,7 +61,7 @@ export const categoryTrees = async (req: Request, res: Response): Promise<void> 
 };
 
 // GET /products-category/categorytree/:slugCategory
-export const categoryTree = async (req: Request, res: Response): Promise<void> => {
+export const categoryTree = async (req: Request, res: Response) => {
   try {
     const { slugCategory } = req.params;
 

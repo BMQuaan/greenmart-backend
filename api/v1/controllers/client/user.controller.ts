@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "../models/user.model";
+import User from "../../models/user.model";
 import dotenv from "dotenv";
 
 dotenv.config(); 
@@ -107,7 +107,7 @@ export const login = async (req: Request, res: Response) => {
     if (!isPasswordCorrect) {
       return res.status(400).json({
         code: 400,
-        message: "Incorrect password",
+        message: "Incorrect information",
       });
     }
 
@@ -249,6 +249,43 @@ export const detail = async (req: Request, res: Response) => {
    });
  }
 };
+
+// [PUT] /api/v1/users/update
+export const update = async (req: Request, res: Response) => {
+  try {
+    const userInfo = req["infoUser"];
+    const { userName, userPhone, userAvatar, userAddress } = req.body;
+
+    const user = await User.findById(userInfo._id);
+    if (!user || user.deleted || user.userStatus !== "active") {
+      return res.status(404).json({ code: 404, message: "User not found or inactive" });
+    }
+
+    if (userName) user.userName = userName;
+    if (userPhone) user.userPhone = userPhone;
+    if (userAvatar) user.userAvatar = userAvatar;
+    if (userAddress) user.userAddress = userAddress;
+
+    await user.save();
+
+    return res.status(200).json({
+      code: 200,
+      message: "User updated successfully",
+      user: {
+        id: user._id,
+        name: user.userName,
+        email: user.userEmail,
+        phone: user.userPhone,
+        address: user.userAddress,
+        avatar: user.userAvatar,
+      },
+    });
+  } catch (error) {
+    console.error("Update user error:", error);
+    return res.status(500).json({ code: 500, message: "Server error during update" });
+  }
+};
+
 
 // [POST] /api/v1/users/logout
 export const logout = async (req: Request, res: Response) => {

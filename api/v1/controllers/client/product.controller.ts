@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import Product from "../../v1/models/product.model";
-import ProductCategory from "../../v1/models/product-category.model";
-import * as productsHelper from "../../../helper/products";
-import { IProduct } from "../../v1/models/product.model";
-import { IProductCategory } from "../../v1/models/product-category.model";
-import { paginationHelper } from "../../../helper/pagination";
-import { SearchHelper } from "../../../helper/search";
+import Product from "../../models/product.model";
+import ProductCategory from "../../models/product-category.model";
+import * as productsHelper from "../../../../helper/products";
+import { IProduct } from "../../models/product.model";
+import { IProductCategory } from "../../models/product-category.model";
+import { paginationHelper } from "../../../../helper/pagination";
+import { SearchHelper } from "../../../../helper/search";
 import mongoose from "mongoose";
 
 export interface IProductExtended extends IProduct {
@@ -15,7 +15,7 @@ export interface IProductExtended extends IProduct {
 
 // [GET] /products
 
-export const index = async (req: Request, res: Response): Promise<void> => {
+export const index = async (req: Request, res: Response) => {
   try {
     interface IProductFind {
       deleted: boolean;
@@ -87,7 +87,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
 };
 
 // [GET] /products/:slugCategory
-export const category = async (req: Request<{ slugCategory: string }>, res: Response): Promise<void> => {
+export const category = async (req: Request<{ slugCategory: string }>, res: Response) => {
   try {
     const { slugCategory } = req.params;
 
@@ -189,7 +189,7 @@ export const category = async (req: Request<{ slugCategory: string }>, res: Resp
 export const detail = async (
   req: Request<{ slugProduct: string }>,
   res: Response
-): Promise<void> => {
+) => {
   try {
     const slug = req.params.slugProduct;
 
