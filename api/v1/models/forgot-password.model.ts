@@ -5,10 +5,11 @@ export interface IForgotPassword extends Document {
   fpExpireAt: Date;
   fpOTP: string;
   fpAttempts: number;
-  fpIsUser: boolean;
+  fpUsed: boolean; 
   createdAt?: Date;
   updatedAt?: Date;
 }
+
 
 const forgotPasswordSchema = new Schema<IForgotPassword>(
   {
@@ -16,15 +17,16 @@ const forgotPasswordSchema = new Schema<IForgotPassword>(
     fpExpireAt: { type: Date, required: true },
     fpOTP: { type: String, required: true },
     fpAttempts: { type: Number, default: 0 },
-    fpIsUser: { type: Boolean, required: true }, // true: user, false: staff/admin
+    fpUsed: { type: Boolean, default: false }, 
   },
   { timestamps: true }
 );
 
+
 const ForgotPasswordModel = mongoose.model<IForgotPassword>(
   "ForgotPassword",
   forgotPasswordSchema,
-  "forgot_passwords"
+  "forgot-passwords"
 );
 
 export default ForgotPasswordModel;

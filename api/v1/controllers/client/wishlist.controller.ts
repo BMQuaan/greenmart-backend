@@ -66,7 +66,16 @@ export const addPost = async (req: Request, res: Response) => {
 
     await wishlist.save();
 
-    return res.status(200).json({ message: "Product added to wishlist", data: wishlist });
+    await wishlist.populate({
+      path: "wishListItemList.productID",
+      match: { deleted: false, productStatus: "active" },
+      select:
+        "_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID",
+    });
+
+    const validItems = wishlist.wishListItemList.filter((item) => item.productID !== null);
+
+    return res.status(200).json({ message: "Product added to wishlist", data: validItems });
   } catch (err) {
     console.error("Add to wishlist error:", err);
     return res.status(500).json({ message: "Server error" });
@@ -100,7 +109,16 @@ export const deleteItem = async (req: Request, res: Response) => {
     wishlist.wishListItemList.splice(index, 1);
     await wishlist.save();
 
-    return res.status(200).json({ message: "Product removed from wishlist" });
+    await wishlist.populate({
+      path: "wishListItemList.productID",
+      match: { deleted: false, productStatus: "active" },
+      select:
+        "_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID",
+    });
+
+    const validItems = wishlist.wishListItemList.filter((item) => item.productID !== null);
+
+    return res.status(200).json({ message: "Product removed from wishlist", data: validItems });
   } catch (err) {
     console.error("Delete wishlist item error:", err);
     return res.status(500).json({ message: "Server error" });
@@ -120,7 +138,7 @@ export const clear = async (req: Request, res: Response) => {
     wishlist.wishListItemList = [];
     await wishlist.save();
 
-    return res.status(200).json({ message: "Wishlist cleared successfully" });
+    return res.status(200).json({ message: "Wishlist cleared successfully", data: [] });
   } catch (err) {
     console.error("Clear wishlist error:", err);
     return res.status(500).json({ message: "Server error" });

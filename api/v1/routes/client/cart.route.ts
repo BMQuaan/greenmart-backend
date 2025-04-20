@@ -9,7 +9,7 @@ router.post("/add", controller.addToCart);
 
 router.put("/update", controller.updateQuantity);
 
-router.delete("/remove", controller.removeFromCart);
+router.delete("/delete", controller.deleteFromCart);
 
 router.delete("/clear", controller.clearCart);
 

@@ -2,7 +2,11 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../../models/user.model";
+import ForgotPasswordModel from "../../models/forgot-password.model";
+import { sendMail } from "../../../../helper/sendmail"; 
+import crypto from "crypto";
 import dotenv from "dotenv";
+import cloudinary from "../../../../config/cloudinary";
 
 dotenv.config(); 
 
@@ -254,7 +258,23 @@ export const detail = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
   try {
     const userInfo = req["infoUser"];
-    const { userName, userPhone, userAvatar, userAddress } = req.body;
+    const { userName, userPhone, userAddress } = req.body;
+    let avatarUrl: string | undefined;
+
+    if (req.file) {
+      const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "avatars" },
+          (error, result) => {
+            if (error || !result) return reject(error);
+            resolve({ secure_url: result.secure_url });
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+
+      avatarUrl = uploadResult.secure_url;
+    }
 
     const user = await User.findById(userInfo._id);
     if (!user || user.deleted || user.userStatus !== "active") {
@@ -263,8 +283,8 @@ export const update = async (req: Request, res: Response) => {
 
     if (userName) user.userName = userName;
     if (userPhone) user.userPhone = userPhone;
-    if (userAvatar) user.userAvatar = userAvatar;
     if (userAddress) user.userAddress = userAddress;
+    if (avatarUrl) user.userAvatar = avatarUrl;
 
     await user.save();
 
@@ -315,5 +335,152 @@ export const logout = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Logout error:", error);
     return res.status(500).json("Server error during logout");
+  }
+};
+
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ userEmail: email, deleted: false });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const recentRequests = await ForgotPasswordModel.countDocuments({
+      fpEmail: email,
+      fpUsed: false,
+      createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) },
+    });
+    
+    if (recentRequests >= 3) {
+      return res.status(429).json({ message: "Too many password reset requests. Please try again later." });
+    }
+    
+
+    const otp = crypto.randomBytes(3).toString("hex"); 
+    const expireAt = new Date();
+    expireAt.setMinutes(expireAt.getMinutes() + 5);
+
+    // const existingForgotPassword = await ForgotPasswordModel.findOne({ fpEmail: email, fpUsed: false });
+    // if (existingForgotPassword) {
+    //   return res.status(400).json({ message: "A password reset request is already in progress." });
+    // }
+
+    const forgotPassword = new ForgotPasswordModel({
+      fpEmail: email,
+      fpOTP: otp,
+      fpExpireAt: expireAt,
+      fpAttempts: 0,
+      fpUsed: false,
+    });
+
+    await forgotPassword.save();
+
+    const subject = "Password Reset OTP";
+    const html = `
+                  <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f0fff4; max-width: 600px; margin: auto;">
+                    <h2 style="color: #27ae60;">🔒 Password Reset Request</h2>
+                    <p style="font-size: 18px; color: #555;">Hello,</p>
+                    <p style="font-size: 16px; color: #555;">We received a request to reset your password. Please use the OTP below to complete the process:</p>
+                    <div style="padding: 15px; background-color: #d4edda; border-radius: 4px; font-size: 20px; font-weight: bold; color: #155724; display: inline-block; margin: 20px 0;">
+                      ${otp}
+                    </div>
+                    <p style="font-size: 14px; color: #777;">This OTP is valid for the next 5 minutes. If you did not request a password reset, you can safely ignore this email.</p>
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #aaa;">Thank you for securing your account with us!</p>
+                  </div>
+                `
+    await sendMail({ email, subject, html });
+
+    return res.status(200).json({ message: "OTP sent successfully." });
+  } catch (err) {
+    console.error("Error in password reset request:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const verifyOTP = async (req: Request, res: Response) => {
+  try {
+    const { email, otp } = req.body;
+
+    const forgotPassword = await ForgotPasswordModel.findOne({
+      fpEmail: email,
+      fpOTP: otp,
+      fpUsed: false,
+    });
+
+    if (!forgotPassword) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
+    }
+
+    if (forgotPassword.fpExpireAt < new Date()) {
+      return res.status(400).json({ message: "OTP has expired." });
+    }
+
+    const user = await User.findOne({ userEmail: email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET as string,
+      { expiresIn: "7d" }
+    ); 
+
+    user.userRefreshTokens = user.userRefreshTokens.filter(tokenObj => {
+      return tokenObj.expiresAt && tokenObj.expiresAt > new Date();
+    });
+
+    if (user.userRefreshTokens.length >= 3) {
+      user.userRefreshTokens.shift(); 
+    }
+
+    user.userRefreshTokens.push({
+      token: refreshToken,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    forgotPassword.fpUsed = true;
+    await forgotPassword.save();
+
+    return res.status(200).json({ message: "OTP verified. You may now reset your password." });
+  } catch (err) {
+    console.error("Error verifying OTP:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const resetPasswordAfterOTP = async (req: Request, res: Response) => {
+  try {
+    const { newPassword } = req.body; 
+    const user = req["infoUser"];
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.userPassword = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully." });
+  } catch (err) {
+    console.error("Error resetting password:", err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

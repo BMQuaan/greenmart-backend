@@ -10,4 +10,4 @@ router.delete("/delete", controller.deleteItem);
 
 router.delete("/clear", controller.clear);
 
-export const wishlistRoutes:Router = router;;
+export const wishlistRoutes:Router = router;

@@ -15,7 +15,7 @@ export const authenticateToken =async (req: Request, res: Response, next: NextFu
       _id: decoded.id,
       deleted: false,
       userStatus: "active"
-    }).select("userName userEmail userPhone userAvatar userAddress userStatus deleted");
+    }).select("userName userEmail userPhone userAvatar userAddress");
     
     if (!user) {
       return res.status(403).json({ message: "Account is invalid or has been disabled" });

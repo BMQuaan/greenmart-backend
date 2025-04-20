@@ -54,7 +54,17 @@ export const addToCart = async (req: Request, res: Response) => {
     }
 
     await cart.save();
-    res.status(200).json({ message: "Added to cart", data: cart });
+
+    await cart.populate({
+      path: "cartList.productID",
+      match: { deleted: false, productStatus: "active" },
+      select: "_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID",
+    });
+
+    res.status(200).json({
+      message: "Added to cart",
+      data: cart.cartList.filter(item => item.productID !== null),
+    });
 };
 
 export const updateQuantity = async (req: Request, res: Response) => {
@@ -79,10 +89,19 @@ export const updateQuantity = async (req: Request, res: Response) => {
     item.quantity = quantity;
     await cart.save();
   
-    res.status(200).json({ message: "Quantity updated", data: cart });
+    await cart.populate({
+      path: "cartList.productID",
+      match: { deleted: false, productStatus: "active" },
+      select: "_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID",
+    });
+    
+    res.status(200).json({
+      message: "Quantity updated",
+      data: cart.cartList.filter(item => item.productID !== null),
+    });
 };
 
-export const removeFromCart = async (req: Request, res: Response) => {
+export const deleteFromCart = async (req: Request, res: Response) => {
     const userID = req["infoUser"]._id;
     const { productID } = req.body;
 
@@ -98,7 +117,16 @@ export const removeFromCart = async (req: Request, res: Response) => {
     cart.cartList = cart.cartList.filter((item) => !item.productID.equals(productObjId));
     await cart.save();
 
-    res.status(200).json({ message: "Product removed from cart", data: cart });
+    await cart.populate({
+      path: "cartList.productID",
+      match: { deleted: false, productStatus: "active" },
+      select: "_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID",
+    });
+    
+    res.status(200).json({
+      message: "Product removed from cart",
+      data: cart.cartList.filter(item => item.productID !== null),
+    });
 };
 
 export const clearCart = async (req: Request, res: Response) => {
