@@ -7,7 +7,7 @@ import { cartRoutes } from "./cart.route";
 import { orderRoutes } from "./order.route";
 import * as authMiddleware from "../../middlewares/client/auth.middleware";
 
-const mainV1Routes = (app: Express): void => {
+const clientV1Routes = (app: Express): void => {
   const version: string = "/api/v1";
   app.use(version + "/users",userRoutes );
 
@@ -22,4 +22,4 @@ const mainV1Routes = (app: Express): void => {
   app.use(version + "/orders", authMiddleware.authenticateToken, orderRoutes);
 };
 
-export default mainV1Routes;
+export default clientV1Routes;

@@ -8,8 +8,13 @@ export interface IStaff extends Document {
   staffPhone: string;
   staffAvatar?: string;
   staffAddress?: string;
-  staffToken: string;
-  staffIsDeleted: boolean;
+  staffRefreshTokens: {
+    token: string;
+    device?: string;
+    createdAt: Date;
+    expiresAt?: Date;
+  }[];
+  deleted: boolean;
   staffStatus: "active" | "inactive";
   createBy?: mongoose.Types.ObjectId;
   updateBy?: mongoose.Types.ObjectId;
@@ -27,11 +32,15 @@ const staffSchema = new Schema<IStaff>(
     staffPhone: { type: String, required: true },
     staffAvatar: { type: String },
     staffAddress: { type: String },
-    staffToken: {
-      type: String,
-      default: () => generateRandomString(30) // dùng arrow function để sinh ngẫu nhiên mỗi lần tạo
-    },
-    staffIsDeleted: { type: Boolean, default: false },
+    staffRefreshTokens: [
+      {
+        token: { type: String, required: true },
+        device: { type: String }, 
+        createdAt: { type: Date, default: Date.now },
+        expiresAt: { type: Date }
+      }
+    ],
+    deleted: { type: Boolean, default: false },
     staffStatus: {
       type: String,
       enum: ["active", "inactive"],
