@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as controller from "../../controllers/admin/staff.controller";
+import * as controller from "../../controllers/admin/auth.controller";
 import * as authMiddleware from "../../middlewares/admin/auth.middleware";
 import multer from "multer";
 
@@ -18,4 +18,4 @@ router.put("/update", authMiddleware.authenticateStaffToken, upload.single("staf
 router.post("/logout", controller.logoutStaff);
 
 
-export const staffRoutes : Router = router;
+export const authRoutes : Router = router;

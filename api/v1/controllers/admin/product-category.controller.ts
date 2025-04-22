@@ -1,28 +1,50 @@
 import { Request, Response } from "express";
 import ProductCategory from "../../models/product-category.model";
+import { SearchHelper } from "../../../../helper/search";
 
-// [GET] /products-category
+// [GET] /productcategories
 export const index = async (req: Request, res: Response) => {
-  const productscategory = await ProductCategory.find({
-    deleted: false
-  })
-  .sort({ position: "desc" });
-
   try {
+    interface IProductCategoryFind {
+      deleted: boolean;
+      categoryName?: RegExp;
+    }
+
+    const objectSearch = SearchHelper(req.query);
+
+    const find: IProductCategoryFind = {
+      deleted: false,
+    };
+
+    if (req.query.keyword) {
+      find.categoryName = objectSearch.regex;
+    }
+
+    const sort: Record<string, any> = {};
+
+    if (req.query.sortKey && req.query.sortValue) {
+      sort[req.query.sortKey.toString()] = req.query.sortValue;
+    } else {
+      sort.position = "desc"; 
+    }
+
+    const productCategories = await ProductCategory.find(find).sort(sort);
+
     res.json({
       code: 200,
-      message: "All products-category",
-      info: productscategory,
+      message: "All product categories",
+      info: productCategories,
     });
   } catch (error) {
-    res.json({
-      code: 400,
-      message: "Error",
+    console.error("Error in category index:", error);
+    res.status(500).json({
+      code: 500,
+      message: "Server error",
     });
   }
 };
 
-// GET /products-category/categorytree
+
 const buildCategoryTree = (categories: any[], parentId: any = null) => {
   return categories
     .filter(cat => String(cat.categoryParentID) === String(parentId))
