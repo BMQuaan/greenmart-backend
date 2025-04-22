@@ -39,3 +39,22 @@ export const authenticateStaffToken = async (
     return res.status(403).json({ message: "Invalid or expired access token" });
   }
 };
+
+
+export const authorizePermission = (permission: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const staff = req["infoStaff"];
+
+    if (!staff || !staff.roleID || !Array.isArray(staff.roleID.rolePermissions)) {
+      return res.status(403).json({ message: "Access denied. Invalid role info." });
+    }
+
+    const hasPermission = staff.roleID.rolePermissions.includes(permission);
+
+    if (!hasPermission) {
+      return res.status(403).json({ message: "Access denied. Missing permission!"});
+    }
+
+    next();
+  };
+};
