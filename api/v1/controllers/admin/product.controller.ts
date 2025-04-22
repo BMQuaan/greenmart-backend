@@ -87,7 +87,6 @@ export const detail = async (
         return;
       }
   
-      // thêm thông tin category
       const productObj: IProductExtended = product.toObject();
   
       if (productObj.categoryID) {

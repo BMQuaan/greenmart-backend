@@ -44,7 +44,40 @@ export const index = async (req: Request, res: Response) => {
   }
 };
 
+// [GET] /products-category/detail/:slug
+export const detail = async (req: Request<{ slug: string }>, res: Response) => {
+  try {
+    const { slug } = req.params;
 
+    const category = await ProductCategory.findOne({
+      categorySlug: slug,
+      deleted: false
+    })
+    .populate("categoryParentID", "categoryName categorySlug")
+    .select("-__v");
+
+    if (!category) {
+      return res.status(404).json({
+        code: 404,
+        message: "Category not found"
+      });
+    }
+
+    return res.status(200).json({
+      code: 200,
+      message: "Category detail",
+      info: category
+    });
+  } catch (error) {
+    console.error("Error in get category detail:", error);
+    return res.status(500).json({
+      code: 500,
+      message: "Server error"
+    });
+  }
+};
+
+//
 const buildCategoryTree = (categories: any[], parentId: any = null) => {
   return categories
     .filter(cat => String(cat.categoryParentID) === String(parentId))
