@@ -11,13 +11,13 @@ export const index = async (req: Request, res: Response) => {
   .sort({ position: "desc" });
 
   try {
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "All products-category",
       info: productscategory,
     });
   } catch (error) {
-    res.json({
+    res.status(400).json({
       code: 400,
       message: "Error",
     });

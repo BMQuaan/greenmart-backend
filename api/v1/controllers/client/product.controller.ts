@@ -71,7 +71,7 @@ export const index = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Products List",
       info: newProducts,
@@ -170,7 +170,7 @@ export const category = async (req: Request<{ slugCategory: string }>, res: Resp
       });
     }
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: `Products in category ${category.categoryName}`,
       info: newProducts,
@@ -200,7 +200,7 @@ export const detail = async (
     }).select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID");
 
     if (!product) {
-      res.json({
+      res.status(404).json({
         code: 404,
         message: "Product not found",
       });
@@ -224,7 +224,7 @@ export const detail = async (
 
     productObj.priceNew = productsHelper.priceNewProduct(product);
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Product detail",
       info: productObj
@@ -233,7 +233,7 @@ export const detail = async (
     
   } catch (error) {
     console.error("Error in detail:", error);
-    res.json({
+    res.status(500).json({
       code: 500,
       message: "Internal Server Error",
     });

@@ -79,7 +79,11 @@ export const detail = async (
       const product = await Product.findOne({
         productSlug: slug,
         deleted: false,
-      });
+      })
+      .populate("createBy.staffID", "staffName")
+      .populate("updateBy.staffID", "staffName")
+      .populate("deleteBy.staffID", "staffName")
+      .select("-__v");
   
       if (!product) {
         res.status(404).json({
@@ -170,7 +174,10 @@ export const addItem = async (req: Request, res: Response) => {
       productDiscountPercentage: productDiscountPercentage || 0,
       productImage: productImageUrl,
       categoryID,
-      createBy: infoStaff._id
+      createBy: {
+        staffID: infoStaff._id,
+        date: new Date()
+      }
     });
 
     await newProduct.save();

@@ -16,8 +16,15 @@ export interface IUser extends Document {
   }[];
   deleted: boolean;
   userStatus: "active" | "inactive";
-  deleteBy?: Types.ObjectId; 
-  updateBy?: Types.ObjectId;
+  updateBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  }[];
+
+  deleteBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -45,14 +52,17 @@ const userSchema = new Schema<IUser>(
       enum: ["active", "inactive"],
       default: "active",
     },
+    updateBy: [
+      {
+        staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+      }
+    ],
+
     deleteBy: {
-      type: Schema.Types.ObjectId,
-      ref: "Staff",
-    },
-    updateBy: {
-      type: Schema.Types.ObjectId,
-      ref: "Staff",
-    },
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date, default: Date.now }
+    }
   },
   {
     timestamps: true,

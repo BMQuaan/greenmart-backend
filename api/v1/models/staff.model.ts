@@ -1,5 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
-import {generateRandomString} from "../../../helper/generate";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IStaff extends Document {
   staffName: string;
@@ -16,9 +15,20 @@ export interface IStaff extends Document {
   }[];
   deleted: boolean;
   staffStatus: "active" | "inactive";
-  createBy?: mongoose.Types.ObjectId;
-  updateBy?: mongoose.Types.ObjectId;
-  deleteBy?: mongoose.Types.ObjectId;
+  createBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
+
+  updateBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  }[];
+
+  deleteBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
   roleID: mongoose.Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
@@ -46,9 +56,22 @@ const staffSchema = new Schema<IStaff>(
       enum: ["active", "inactive"],
       default: "active"
     },
-    createBy: { type: Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: Schema.Types.ObjectId, ref: "Staff" },
+    createBy: {
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date, default: Date.now }
+    },
+
+    updateBy: [
+      {
+        staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+      }
+    ],
+
+    deleteBy: {
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date }
+    },
     roleID: { type: Schema.Types.ObjectId, ref: "Role", required: true }
   },
   { timestamps: true }

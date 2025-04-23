@@ -192,7 +192,7 @@ export const refreshStaffAccessToken = async (req: Request, res: Response) => {
 
 export const detail = async (req: Request, res: Response) => {
   try {
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Detail staff profile",
       info: req["infoStaff"],

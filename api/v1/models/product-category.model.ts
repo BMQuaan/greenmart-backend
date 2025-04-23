@@ -1,7 +1,4 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import slug from "mongoose-slug-updater";
-
-mongoose.plugin(slug);
 
 export interface IProductCategory extends Document {
   categoryParentID?: Types.ObjectId | null;
@@ -10,9 +7,20 @@ export interface IProductCategory extends Document {
   categoryStatus: "active" | "inactive";
   categoryPosition?: number;
   categorySlug?: string;
-  createBy?: Types.ObjectId;
-  updateBy?: Types.ObjectId;
-  deleteBy?: Types.ObjectId;
+  createBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
+
+  updateBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  }[];
+
+  deleteBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
   deleted?: boolean;
   deletedAt?: Date;
   createdAt?: Date;
@@ -36,12 +44,24 @@ const productCategorySchema = new Schema<IProductCategory>(
     categoryPosition: { type: Number, default: 0 },
     categorySlug: {
       type: String,
-      slug: "categoryName",
       unique: true,
     },
-    createBy: { type: Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: Schema.Types.ObjectId, ref: "Staff" },
+    createBy: {
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date, default: Date.now }
+    },
+
+    updateBy: [
+      {
+        staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+      }
+    ],
+
+    deleteBy: {
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date }
+    },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
   },

@@ -54,6 +54,9 @@ export const detail = async (req: Request<{ slug: string }>, res: Response) => {
       deleted: false
     })
     .populate("categoryParentID", "categoryName categorySlug")
+    .populate("createBy.staffID", "staffName")
+    .populate("updateBy.staffID", "staffName")
+    .populate("deleteBy.staffID", "staffName")
     .select("-__v");
 
     if (!category) {

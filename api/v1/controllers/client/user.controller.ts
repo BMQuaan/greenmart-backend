@@ -235,13 +235,13 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 // [GET] /api/v1/users/detail
 export const detail = async (req: Request, res: Response) => {
  try {
-   res.json({
+   res.status(200).json({
      code: 200,
      message: "Detail profile",
      info: req["infoUser"],
    });
  } catch (error) {
-   res.json({
+   res.status(500).json({
      code: 500,
      message: "Error",
    });

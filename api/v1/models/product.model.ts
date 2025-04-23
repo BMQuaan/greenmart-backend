@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IProduct extends Document {
   productName: string;
@@ -11,9 +11,20 @@ export interface IProduct extends Document {
   productDiscountPercentage: number;
   productSlug: string;
   categoryID: mongoose.Types.ObjectId;
-  createBy?: mongoose.Types.ObjectId;
-  updateBy?: mongoose.Types.ObjectId[];
-  deleteBy?: mongoose.Types.ObjectId;
+  createBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
+
+  updateBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  }[];
+
+  deleteBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
   deleted: boolean;
   deletedAt?: Date;
   createdAt?: Date;
@@ -44,18 +55,20 @@ const productSchema = new Schema<IProduct>(
       required: true,
     },
     createBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Staff",
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date, default: Date.now }
     },
+
     updateBy: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Staff",
-      },
+        staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+      }
     ],
+
     deleteBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Staff",
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date }
     },
     deleted: {
       type: Boolean,

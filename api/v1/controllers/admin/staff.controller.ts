@@ -43,7 +43,7 @@ export const index = async (req: Request, res: Response) => {
     //   .limit(objectPagination.limitItems)
     //   .skip(objectPagination.skip);
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Staffs list",
       info: staffs,
@@ -66,7 +66,11 @@ export const detail = async (req: Request<{ id: string }>, res: Response) => {
       deleted: false
     })
       .select("-staffPassword -staffRefreshTokens")
-      .populate("roleID", "roleName");
+      .populate("roleID", "roleName")
+      .populate("createBy.staffID", "staffName")
+      .populate("updateBy.staffID", "staffName")
+      .populate("deleteBy.staffID", "staffName")
+      .select("-__v");
 
     if (!staff) {
       return res.status(404).json({
@@ -75,7 +79,7 @@ export const detail = async (req: Request<{ id: string }>, res: Response) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Staff detail",
       info: staff

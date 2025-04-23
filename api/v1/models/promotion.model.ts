@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IPromotion extends Document {
   promotionDescription: string;
@@ -7,9 +7,20 @@ export interface IPromotion extends Document {
   startDate: Date;
   endDate: Date;
   promotionIsActive: boolean;
-  createBy?: mongoose.Types.ObjectId;
-  updateBy?: mongoose.Types.ObjectId;
-  deleteBy?: mongoose.Types.ObjectId;
+  createBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
+
+  updateBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  }[];
+
+  deleteBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,9 +38,22 @@ const promotionSchema = new Schema<IPromotion>(
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     promotionIsActive: { type: Boolean, default: true },
-    createBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
+    createBy: {
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date, default: Date.now }
+    },
+
+    updateBy: [
+      {
+        staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+      }
+    ],
+
+    deleteBy: {
+      staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+      date: { type: Date }
+    },
   },
   { timestamps: true }
 );

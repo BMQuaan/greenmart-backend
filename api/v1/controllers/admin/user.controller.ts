@@ -50,7 +50,7 @@ export const index = async (req: Request, res: Response) => {
     //   .limit(objectPagination.limitItems)
     //   .skip(objectPagination.skip);
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Users list",
       info: users,
@@ -71,7 +71,10 @@ export const detail = async (req: Request<{ id: string }>, res: Response) => {
     const user = await UserModel.findOne({
       _id: req.params.id,
       deleted: false
-    }).select("-userPassword -userRefreshTokens");
+    }).select("-userPassword -userRefreshTokens")
+    .populate("updateBy.staffID", "staffName")
+    .populate("deleteBy.staffID", "staffName")
+    .select("-__v");
 
     if (!user) {
       return res.status(404).json({
@@ -80,7 +83,7 @@ export const detail = async (req: Request<{ id: string }>, res: Response) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "User detail",
       info: user
