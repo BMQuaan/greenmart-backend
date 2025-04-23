@@ -126,7 +126,7 @@ export const detail = async (
     }
 };
 
-
+//POST /add
 export const addItem = async (req: Request, res: Response) => {
   try {
     const {
@@ -193,3 +193,100 @@ export const addItem = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+//PUT update/:id
+export const updateItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      productName,
+      productPrice,
+      productStock,
+      productDescription,
+      productStatus,
+      productPosition,
+      productDiscountPercentage,
+      categoryID,
+      productSlug
+    } = req.body;
+
+    const infoStaff = req["infoStaff"];
+
+    const product = await Product.findOne({ _id: id, deleted: false });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    let finalSlug = productSlug?.trim() || slugify(productName, { lower: true, strict: true });
+    const slugOwner = await Product.findOne({ productSlug: finalSlug, _id: { $ne: id }, deleted: false });
+    if (slugOwner) {
+      return res.status(400).json({ message: "Slug already in use by another product" });
+    }
+
+    let productImageUrl = product.productImage;
+    if (req.file) {
+      const uploadResult = await uploadImageToCloudinary(req.file.buffer, "products");
+      productImageUrl = uploadResult;
+    }
+
+    product.productName = productName || product.productName;
+    product.productPrice = productPrice || product.productPrice;
+    product.productStock = productStock || product.productStock;
+    product.productDescription = productDescription || product.productDescription;
+    product.productStatus = productStatus || product.productStatus;
+    product.productPosition = productPosition || product.productPosition;
+    product.productDiscountPercentage = productDiscountPercentage || product.productDiscountPercentage;
+    product.productImage = productImageUrl;
+    product.productSlug = finalSlug;
+    product.categoryID = categoryID || product.categoryID;
+
+    product.updateBy.push({
+      staffID: infoStaff._id,
+      date: new Date()
+    });
+
+    await product.save();
+
+    return res.status(200).json({
+      code: 200,
+      message: "Product updated successfully",
+      // info: product
+    });
+
+  } catch (err) {
+    console.error("Error updating product:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//DELETE /delete/:id
+export const deleteItem = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const infoStaff = req["infoStaff"];
+
+    const product = await Product.findOne({ _id: id, deleted: false });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    product.deleted = true;
+    product.deletedAt = new Date();
+    product.deleteBy = {
+      staffID: infoStaff._id,
+      date: new Date()
+    };
+
+    await product.save();
+
+    return res.status(200).json({
+      code: 200,
+      message: "Product deleted successfully"
+    });
+
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
