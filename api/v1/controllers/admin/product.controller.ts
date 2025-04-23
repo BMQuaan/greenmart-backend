@@ -6,6 +6,8 @@ import { IProduct } from "../../models/product.model";
 import { IProductCategory } from "../../models/product-category.model";
 import { paginationHelper } from "../../../../helper/pagination";
 import { SearchHelper } from "../../../../helper/search";
+import { uploadImageToCloudinary } from "../../../../helper/uploadCloudinary";
+import slugify from "slugify";
 
 export interface IProductExtended extends IProduct {
   category?: IProductCategory;
@@ -52,7 +54,7 @@ export const index = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "Products List",
       info: newProducts,
@@ -80,7 +82,7 @@ export const detail = async (
       });
   
       if (!product) {
-        res.json({
+        res.status(404).json({
           code: 404,
           message: "Product not found",
         });
@@ -103,7 +105,7 @@ export const detail = async (
   
       productObj.priceNew = productsHelper.priceNewProduct(product);
   
-      res.json({
+      res.status(200).json({
         code: 200,
         message: "Product detail",
         info: productObj
@@ -112,10 +114,75 @@ export const detail = async (
       
     } catch (error) {
       console.error("Error in detail:", error);
-      res.json({
+      res.status(500).json({
         code: 500,
         message: "Internal Server Error",
       });
       return;
     }
-  };
+};
+
+
+export const addItem = async (req: Request, res: Response) => {
+  try {
+    const {
+      productName,
+      productPrice,
+      productStock,
+      productDescription,
+      productStatus,
+      productPosition,
+      productDiscountPercentage,
+      categoryID,
+      productSlug
+    } = req.body;
+
+    const infoStaff = req["infoStaff"];
+
+    if (!productName || !productPrice || !categoryID) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    let productImageUrl = "";
+    if (req.file) {
+      const uploadResult = await uploadImageToCloudinary(req.file.buffer, "products");
+      productImageUrl = uploadResult;
+    }
+
+    let finalSlug = productSlug?.trim();
+    if (!finalSlug) {
+      finalSlug = slugify(productName, { lower: true, strict: true });
+    }
+
+    const existing = await Product.findOne({ productSlug: finalSlug, deleted: false });
+    if (existing) {
+      return res.status(400).json({ message: "Slug already exists. Please choose a different one." });
+    }
+
+    const newProduct = new Product({
+      productName,
+      productSlug: finalSlug,
+      productPrice,
+      productStock: productStock || 0,
+      productDescription,
+      productStatus: productStatus || "active",
+      productPosition: productPosition || 0,
+      productDiscountPercentage: productDiscountPercentage || 0,
+      productImage: productImageUrl,
+      categoryID,
+      createBy: infoStaff._id
+    });
+
+    await newProduct.save();
+
+    return res.status(201).json({
+      code: 201,
+      message: "Product created successfully",
+      info: newProduct
+    });
+
+  } catch (error) {
+    console.error("Error adding product:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

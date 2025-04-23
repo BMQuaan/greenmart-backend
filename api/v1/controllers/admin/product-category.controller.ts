@@ -30,7 +30,7 @@ export const index = async (req: Request, res: Response) => {
 
     const productCategories = await ProductCategory.find(find).sort(sort);
 
-    res.json({
+    res.status(200).json({
       code: 200,
       message: "All product categories",
       info: productCategories,

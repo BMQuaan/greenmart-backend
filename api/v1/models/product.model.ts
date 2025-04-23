@@ -1,7 +1,4 @@
 import mongoose, { Document, Schema } from "mongoose";
-import slug from "mongoose-slug-updater";
-
-mongoose.plugin(slug);
 
 export interface IProduct extends Document {
   productName: string;
@@ -39,8 +36,7 @@ const productSchema = new Schema<IProduct>(
     productDiscountPercentage: { type: Number, default: 0 },
     productSlug: {
       type: String,
-      slug: "productName",
-      unique: true,
+      unique: true
     },
     categoryID: {
       type: mongoose.Schema.Types.ObjectId,
