@@ -4,6 +4,7 @@ import * as authMiddleware from "../../middlewares/admin/auth.middleware";
 import upload from "../../middlewares/admin/upload.middleware";
 import { addProductSchema, updateProductSchema, deleteProductSchema } from "../../validations/admin/product.validation";
 import validateRequest from "../../middlewares/admin/validateRequest";
+import { parseFormDataNumbers } from "../../middlewares/admin/parseFormData.middleware";
 
 const router: Router = Router();
 
@@ -13,14 +14,16 @@ router.get("/detail/:slugProduct", authMiddleware.authenticateStaffToken, authMi
 
 router.post("/add", authMiddleware.authenticateStaffToken, 
     authMiddleware.authorizePermission("add_product"), 
-    upload.single("productImage"), 
+    upload.single("productImage"),
+    parseFormDataNumbers(["productPrice", "productStock", "productPosition", "productDiscountPercentage"]),
     validateRequest(addProductSchema), 
     controller.addItem);
 
 router.put("/update/:id", 
     authMiddleware.authenticateStaffToken, 
     authMiddleware.authorizePermission("edit_product"), 
-    upload.single("productImage"), 
+    upload.single("productImage"),
+    parseFormDataNumbers(["productPrice", "productStock", "productPosition", "productDiscountPercentage"]), 
     validateRequest(updateProductSchema), 
     controller.updateItem); 
 
