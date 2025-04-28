@@ -217,12 +217,6 @@ export const updateItem = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    let finalSlug = productSlug?.trim() || slugify(productName, { lower: true, strict: true });
-    const slugOwner = await Product.findOne({ productSlug: finalSlug, _id: { $ne: id }, deleted: false });
-    if (slugOwner) {
-      return res.status(400).json({ message: "Slug already in use by another product" });
-    }
-
     let productImageUrl = product.productImage;
     if (req.file) {
       const uploadResult = await uploadImageToCloudinary(req.file.buffer, "products");
@@ -237,7 +231,7 @@ export const updateItem = async (req: Request, res: Response) => {
     product.productPosition = productPosition || product.productPosition;
     product.productDiscountPercentage = productDiscountPercentage || product.productDiscountPercentage;
     product.productImage = productImageUrl;
-    product.productSlug = finalSlug;
+    product.productSlug = productSlug || product.productSlug;
     product.categoryID = categoryID || product.categoryID;
 
     product.updateBy.push({

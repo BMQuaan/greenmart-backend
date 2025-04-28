@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import ProductCategory from "../../models/product-category.model";
 import { SearchHelper } from "../../../../helper/search";
+import { uploadImageToCloudinary } from "../../../../helper/uploadCloudinary";
+import slugify from "slugify";
 
 // [GET] /productcategories
 export const index = async (req: Request, res: Response) => {
@@ -111,5 +113,141 @@ export const categoryTrees = async (req: Request, res: Response): Promise<void> 
       code: 500,
       message: "Internal server error",
     });
+  }
+};
+
+export const addCategory = async (req: Request, res: Response) => {
+  try {
+    const {
+      categoryName,
+      categoryStatus,
+      categoryPosition,
+      categorySlug,
+      categoryParentID
+    } = req.body;
+
+    const infoStaff = req["infoStaff"];
+
+    if (!categoryName) {
+      return res.status(400).json({ message: "Missing required field: categoryName" });
+    }
+
+    let finalSlug = categorySlug?.trim() || slugify(categoryName, { lower: true, strict: true });
+
+    const existing = await ProductCategory.findOne({ categorySlug: finalSlug, deleted: false });
+    if (existing) {
+      return res.status(400).json({ message: "Slug already exists" });
+    }
+
+    let categoryImageUrl = "";
+    if (req.file) {
+      const uploadResult = await uploadImageToCloudinary(req.file.buffer, "categories");
+      categoryImageUrl = uploadResult;
+    }
+
+    const newCategory = new ProductCategory({
+      categoryName,
+      categorySlug: finalSlug,
+      categoryStatus: categoryStatus || "active",
+      categoryPosition: categoryPosition || 0,
+      categoryParentID: categoryParentID || null,
+      categoryImage: categoryImageUrl,
+      createBy: {
+        staffID: infoStaff._id,
+        date: new Date()
+      },
+      updateBy: []
+    });
+
+    await newCategory.save();
+
+    return res.status(201).json({
+      code: 201,
+      message: "Category created successfully",
+      info: newCategory
+    });
+  } catch (err) {
+    console.error("Error adding category:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      categoryName,
+      categoryStatus,
+      categoryPosition,
+      categorySlug,
+      categoryParentID
+    } = req.body;
+
+    const infoStaff = req["infoStaff"];
+
+    const category = await ProductCategory.findOne({ _id: id, deleted: false });
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    let categoryImageUrl = category.categoryImage;
+    if (req.file) {
+      const uploadResult = await uploadImageToCloudinary(req.file.buffer, "categories");
+      categoryImageUrl = uploadResult;
+    }
+
+    category.categoryName = categoryName || category.categoryName;
+    category.categoryStatus = categoryStatus || category.categoryStatus;
+    category.categoryPosition = categoryPosition || category.categoryPosition;
+    category.categorySlug = categorySlug || category.categorySlug;
+    category.categoryParentID = categoryParentID || category.categoryParentID;
+    category.categoryImage = categoryImageUrl;
+
+    if (!Array.isArray(category.updateBy)) {
+      category.updateBy = [];
+    }
+    category.updateBy.push({
+      staffID: infoStaff._id,
+      date: new Date()
+    });
+
+    await category.save();
+
+    return res.status(200).json({
+      code: 200,
+      message: "Category updated successfully"
+    });
+  } catch (err) {
+    console.error("Error updating category:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const infoStaff = req["infoStaff"];
+
+    const category = await ProductCategory.findOne({ _id: id, deleted: false });
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    category.deleted = true;
+    category.deletedAt = new Date();
+    category.deleteBy = {
+      staffID: infoStaff._id,
+      date: new Date()
+    };
+
+    await category.save();
+
+    return res.status(200).json({
+      code: 200,
+      message: "Category deleted successfully"
+    });
+  } catch (err) {
+    console.error("Error deleting category:", err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

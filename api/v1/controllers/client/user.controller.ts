@@ -7,6 +7,7 @@ import { sendMail } from "../../../../helper/sendmail";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import cloudinary from "../../../../config/cloudinary";
+import { updateUserSchema } from "../../validations/client/user.validation";
 
 dotenv.config(); 
 
@@ -23,11 +24,14 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { userName, userEmail, userPassword } = req.body;
 
-    if (!userName || !userEmail || !userPassword) {
+    const trimmedUserName = userName?.trim();
+    const trimmedUserEmail = userEmail?.trim();
+
+    if (!trimmedUserName || !trimmedUserEmail || !userPassword) {
       return res.status(400).json({ message: "Please provide all required fields" });
     }
     const existUser = await User.findOne({
-      userEmail: userEmail,
+      userEmail: trimmedUserEmail,
       deleted: false,
     });
 
@@ -42,8 +46,8 @@ export const register = async (req: Request, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userPassword, salt);
     const newUser = new User({
-      userName,
-      userEmail,
+      userName: trimmedUserName,
+      userEmail: trimmedUserEmail,
       userPassword: hashedPassword,
     });
 
@@ -97,8 +101,9 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { userEmail, userPassword } = req.body;
+    const trimmedUserEmail = userEmail?.trim();
 
-    const user = await User.findOne({ userEmail: userEmail, deleted: false });
+    const user = await User.findOne({ userEmail: trimmedUserEmail, deleted: false });
 
     if (!user) {
       return res.status(400).json({
@@ -251,14 +256,27 @@ export const detail = async (req: Request, res: Response) => {
 // [PUT] /api/v1/users/update
 export const update = async (req: Request, res: Response) => {
   try {
+    const parsedData = updateUserSchema.safeParse({
+      body: req.body,
+    });
+
+    if (!parsedData.success) {
+      const errorMessages = parsedData.error.errors.map(err => err.message);
+      return res.status(400).json({
+        code: 400,
+        message: "Validation failed",
+        errors: errorMessages,
+      });
+    }
+
     const userInfo = req["infoUser"];
-    const { userName, userPhone, userAddress } = req.body;
+    const { userName, userPhone, userAddress } = parsedData.data.body;
     let avatarUrl: string | undefined;
 
     if (req.file) {
       const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "avatars" },
+          { folder: "users" },
           (error, result) => {
             if (error || !result) return reject(error);
             resolve({ secure_url: result.secure_url });

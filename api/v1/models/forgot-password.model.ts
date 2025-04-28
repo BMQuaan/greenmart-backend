@@ -14,7 +14,7 @@ export interface IForgotPassword extends Document {
 const forgotPasswordSchema = new Schema<IForgotPassword>(
   {
     fpEmail: { type: String, required: true },
-    fpExpireAt: { type: Date, required: true },
+    fpExpireAt: { type: Date, required: true, index: { expires: 0 } },
     fpOTP: { type: String, required: true },
     fpAttempts: { type: Number, default: 0 },
     fpUsed: { type: Boolean, default: false }, 

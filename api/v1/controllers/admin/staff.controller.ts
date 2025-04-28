@@ -169,6 +169,18 @@ export const updateStaff = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Staff not found" });
     }
 
+    if (staffEmail) {
+      const existingStaffWithEmail = await StaffModel.findOne({
+        staffEmail,
+        deleted: false,
+        _id: { $ne: staffID }, 
+      });
+
+      if (existingStaffWithEmail) {
+        return res.status(400).json({ message: "Email is already in use" });
+      }
+    }
+
     if (req.file) {
       const avatarUrl = await uploadImageToCloudinary(req.file.buffer, "staffs");
       staff.staffAvatar = avatarUrl;
