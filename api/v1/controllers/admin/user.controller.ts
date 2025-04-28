@@ -121,10 +121,10 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Email and password cannot be updated here." });
     }
 
-    if (userName) user.userName = userName;
-    if (userPhone) user.userPhone = userPhone;
-    if (userAddress) user.userAddress = userAddress;
-    if (userStatus) user.userStatus = userStatus;
+    if (userName !== undefined) user.userName = userName;
+    if (userPhone !== undefined) user.userPhone = userPhone;
+    if (userAddress !== undefined) user.userAddress = userAddress;
+    if (userStatus !== undefined) user.userStatus = userStatus;
 
     if (req.file) {
       const avatarUrl = await uploadImageToCloudinary(req.file.buffer, "users");

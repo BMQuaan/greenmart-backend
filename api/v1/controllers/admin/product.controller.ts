@@ -223,16 +223,17 @@ export const updateItem = async (req: Request, res: Response) => {
       productImageUrl = uploadResult;
     }
 
-    product.productName = productName || product.productName;
-    product.productPrice = productPrice || product.productPrice;
-    product.productStock = productStock || product.productStock;
-    product.productDescription = productDescription || product.productDescription;
-    product.productStatus = productStatus || product.productStatus;
-    product.productPosition = productPosition || product.productPosition;
-    product.productDiscountPercentage = productDiscountPercentage || product.productDiscountPercentage;
     product.productImage = productImageUrl;
-    product.productSlug = productSlug || product.productSlug;
-    product.categoryID = categoryID || product.categoryID;
+
+    if (productName !== undefined) product.productName = productName;
+    if (productPrice !== undefined) product.productPrice = productPrice;
+    if (productStock !== undefined) product.productStock = productStock;
+    if (productDescription !== undefined) product.productDescription = productDescription;
+    if (productStatus !== undefined) product.productStatus = productStatus;
+    if (productPosition !== undefined) product.productPosition = productPosition;
+    if (productDiscountPercentage !== undefined) product.productDiscountPercentage = productDiscountPercentage;
+    if (productSlug !== undefined) product.productSlug = productSlug;
+    if (categoryID !== undefined) product.categoryID = categoryID;
 
     product.updateBy.push({
       staffID: infoStaff._id,

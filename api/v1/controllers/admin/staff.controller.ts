@@ -186,12 +186,12 @@ export const updateStaff = async (req: Request, res: Response) => {
       staff.staffAvatar = avatarUrl;
     }
 
-    if (staffName) staff.staffName = staffName;
-    if (staffEmail) staff.staffEmail = staffEmail;
-    if (staffPhone) staff.staffPhone = staffPhone;
-    if (staffAddress) staff.staffAddress = staffAddress;
-    if (staffStatus) staff.staffStatus = staffStatus;
-    if (roleID) staff.roleID = roleID;
+    if (staffName !== undefined) staff.staffName = staffName;
+    if (staffEmail !== undefined) staff.staffEmail = staffEmail;
+    if (staffPhone !== undefined) staff.staffPhone = staffPhone;
+    if (staffAddress !== undefined) staff.staffAddress = staffAddress;
+    if (staffStatus !== undefined) staff.staffStatus = staffStatus;
+    if (roleID !== undefined) staff.roleID = roleID;
 
     if (staffPassword) {
       const hashedPassword = await bcrypt.hash(staffPassword, 10);

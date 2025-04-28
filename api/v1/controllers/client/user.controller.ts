@@ -293,9 +293,9 @@ export const update = async (req: Request, res: Response) => {
       return res.status(404).json({ code: 404, message: "User not found or inactive" });
     }
 
-    if (userName) user.userName = userName;
-    if (userPhone) user.userPhone = userPhone;
-    if (userAddress) user.userAddress = userAddress;
+    if (userName !== undefined) user.userName = userName;
+    if (userPhone !== undefined) user.userPhone = userPhone;
+    if (userAddress !== undefined) user.userAddress = userAddress;
     if (avatarUrl) user.userAvatar = avatarUrl;
 
     await user.save();

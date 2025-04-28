@@ -196,11 +196,11 @@ export const updateCategory = async (req: Request, res: Response) => {
       categoryImageUrl = uploadResult;
     }
 
-    category.categoryName = categoryName || category.categoryName;
-    category.categoryStatus = categoryStatus || category.categoryStatus;
-    category.categoryPosition = categoryPosition || category.categoryPosition;
-    category.categorySlug = categorySlug || category.categorySlug;
-    category.categoryParentID = categoryParentID || category.categoryParentID;
+    if (categoryName !== undefined) category.categoryName = categoryName;
+    if (categoryStatus !== undefined) category.categoryStatus = categoryStatus;
+    if (categoryPosition !== undefined) category.categoryPosition = categoryPosition;
+    if (categorySlug !== undefined) category.categorySlug = categorySlug;
+    if (categoryParentID !== undefined) category.categoryParentID = categoryParentID;
     category.categoryImage = categoryImageUrl;
 
     if (!Array.isArray(category.updateBy)) {

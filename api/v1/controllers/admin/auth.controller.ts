@@ -221,9 +221,9 @@ export const update = async (req: Request, res: Response) => {
       return res.status(404).json({ code: 404, message: "Staff not found or inactive" });
     }
 
-    if (staffName) staff.staffName = staffName;
-    if (staffPhone) staff.staffPhone = staffPhone;
-    if (staffAddress) staff.staffAddress = staffAddress;
+    if (staffName !== undefined) staff.staffName = staffName;
+    if (staffPhone !== undefined) staff.staffPhone = staffPhone;
+    if (staffAddress !== undefined) staff.staffAddress = staffAddress;
     if (avatarUrl) staff.staffAvatar = avatarUrl;
 
     await staff.save();
