@@ -318,6 +318,39 @@ export const update = async (req: Request, res: Response) => {
   }
 };
 
+// POST /password/change
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userInfo = req["infoUser"]; 
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Both current and new passwords are required" });
+    }
+
+    const user = await User.findById(userInfo._id).select("+userPassword");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.userPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.userPassword = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // [POST] /api/v1/users/logout
 export const logout = async (req: Request, res: Response) => {

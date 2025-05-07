@@ -7,4 +7,5 @@ const router: Router = express.Router();
 
 router.post("/",validateRequest(createOrderSchema) , controller.createOrder);
 
+router.get("/", controller.getOrders);
 export const orderRoutes:Router = router;

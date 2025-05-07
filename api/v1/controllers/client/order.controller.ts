@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import OrderModel from "../../models/order.model";
 import Product from "../../models/product.model";
+import { SearchHelper } from "../../../../helper/search";
 import mongoose from "mongoose";
 
 export const createOrder = async (req: Request, res: Response) => {
@@ -69,5 +70,67 @@ export const createOrder = async (req: Request, res: Response) => {
     session.endSession();
     console.error("Error creating order:", err);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getOrders = async (req: Request, res: Response) => {
+  try {
+    const user = req["infoUser"];
+    const objectSearch = SearchHelper(req.query);
+
+    let orders = await OrderModel.find({ customerID: user._id })
+      .populate({
+        path: "orderItemList.productID",
+        select: "productName",
+      })
+      .lean();
+
+    if (objectSearch.keyword) {
+      orders = orders.filter(order =>
+        order.orderItemList.some(item =>
+          (item.productID as any)?.productName?.toLowerCase().includes(objectSearch.keyword.toLowerCase())
+        )
+      );
+    }
+
+    const updatedOrders = orders.map(order => {
+      const totalOrderAmount = order.orderItemList.reduce((acc, item) => {
+        const priceAfterDiscount = item.productPrice * (1 - (item.productDiscountPercentage || 0) / 100);
+        return acc + (priceAfterDiscount * item.quantity);
+      }, 0);
+
+      return {
+        ...order,
+        totalOrderAmount,
+      };
+    });
+
+    const sort: Record<string, any> = {};
+
+    if (req.query.sortKey && req.query.sortValue) {
+      sort[req.query.sortKey.toString()] = req.query.sortValue === "asc" ? 1 : -1;
+    } else {
+      sort.createdAt = -1; 
+    }
+
+    updatedOrders.sort((a, b) => {
+      if (req.query.sortKey === "totalOrderAmount") {
+        return (a.totalOrderAmount - b.totalOrderAmount) * (sort.totalOrderAmount || -1);
+      } else {
+        return (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) * (sort.createdAt || -1);
+      }
+    });
+
+    return res.status(200).json({
+      code: 200,
+      message: "User's Orders List",
+      info: updatedOrders,
+    });
+  } catch (error) {
+    console.error("Error in getOrders:", error);
+    return res.status(500).json({
+      code: 500,
+      message: "Server error",
+    });
   }
 };

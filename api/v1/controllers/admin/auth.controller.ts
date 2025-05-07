@@ -256,14 +256,10 @@ export const logoutStaff = async (req: Request, res: Response) => {
   }
 
   try {
-    const staff = await Staff.findOne({ 'staffRefreshTokens.token': refreshToken });
-
-    if (staff) {
-      staff.staffRefreshTokens = staff.staffRefreshTokens.filter(
-        tokenObj => tokenObj.token !== refreshToken
-      );
-      await staff.save();
-    }
+    await Staff.updateOne(
+      { 'staffRefreshTokens.token': refreshToken },
+      { $pull: { staffRefreshTokens: { token: refreshToken } } }
+    );
 
     res.clearCookie("refreshToken", {
       httpOnly: true,

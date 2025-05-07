@@ -20,6 +20,8 @@ router.get("/refresh-token", controller.refreshAccessToken);
 
 router.put("/update", authMiddleware.authenticateToken, upload.single("userAvatar"), controller.update);
 
+router.post("/password/change", authMiddleware.authenticateToken, controller.changePassword);
+
 router.post("/password/forgot", controller.requestPasswordReset);
 
 router.post("/password/otp", controller.verifyOTP);

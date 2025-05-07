@@ -190,6 +190,10 @@ export const updateCategory = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Category not found" });
     }
 
+    if (categoryParentID && categoryParentID === id) {
+      return res.status(400).json({ message: "A category cannot be its own parent" });
+    }
+
     let categoryImageUrl = category.categoryImage;
     if (req.file) {
       const uploadResult = await uploadImageToCloudinary(req.file.buffer, "categories");
