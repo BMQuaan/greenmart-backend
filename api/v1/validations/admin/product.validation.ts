@@ -1,10 +1,12 @@
 import { z } from "zod";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+const unicodeNameRegex = /^[\p{L}\p{N}\s'-]+$/u;
+
 
 export const addProductSchema = z.object({
   body: z.object({
-    productName: z.string({ required_error: "Product name is required" }).trim().min(1, "Product name cannot be empty").regex(/^(?!\d+$).*$/, "Product name cannot contain only numbers"),
+    productName: z.string({ required_error: "Product name is required" }).trim().min(1, "Product name cannot be empty").regex(/^(?!\d+$).*$/, "Product name cannot contain only numbers").regex(unicodeNameRegex, "Product name contains invalid characters"),
     productPrice: z.number({ required_error: "Product price is required" }).nonnegative("Product price must be >= 0"),
     // productPrice: z.string(),
     categoryID: z.string({ required_error: "Category ID is required" }).regex(objectIdRegex, "Invalid category ID"),
@@ -20,7 +22,7 @@ export const addProductSchema = z.object({
 
 export const updateProductSchema = z.object({
   body: z.object({
-    productName: z.string().trim().min(1, "Product name cannot be empty").regex(/^(?!\d+$).*$/, "Product name cannot contain only numbers").optional(),
+    productName: z.string().trim().min(1, "Product name cannot be empty").regex(/^(?!\d+$).*$/, "Product name cannot contain only numbers").regex(unicodeNameRegex, "Product name contains invalid characters").optional(),
     productPrice: z.number().nonnegative().optional(),
     categoryID: z.string().regex(objectIdRegex).optional(),
 

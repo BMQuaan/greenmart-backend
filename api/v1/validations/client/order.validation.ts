@@ -3,7 +3,8 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
   body: z.object({
     customerInfor: z.object({
-      name: z.string().trim().min(1, "Customer name is required").regex(/^[A-Za-z\s]+$/, "User name cannot contain numbers"),
+      name: z.string().trim().min(1, "Customer name is required").regex(/^[\p{L}\s']+$/u, "Name must contain only letters and spaces")
+      ,
       address: z.string().trim().min(1, "Customer address is required"),
       phone: z.string().trim().min(6, "Customer phone must be at least 6 digits").regex(/^\d+$/, "Phone number must contain only numbers"),
     }),

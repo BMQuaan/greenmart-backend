@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+const unicodeNameRegex = /^[\p{L}\p{N}\s'-]+$/u;
 
 export const addProductCategorySchema = z.object({
   body: z.object({
-    categoryName: z.string({ required_error: "Category name is required" }).trim().min(1, "Category name cannot be empty").regex(/^(?!\d+$).*$/, "Category name cannot contain only numbers"),
+    categoryName: z.string({ required_error: "Category name is required" }).trim().min(1, "Category name cannot be empty").regex(/^(?!\d+$).*$/, "Category name cannot contain only numbers").regex(unicodeNameRegex, "Category name contains invalid characters"),
 
     categoryStatus: z.enum(["active", "inactive"], { required_error: "Category status is required" }).optional(),
     categoryPosition: z.number().nonnegative("Product price must be >= 0").optional(),
@@ -15,7 +16,7 @@ export const addProductCategorySchema = z.object({
 
 export const updateProductCategorySchema = z.object({
   body: z.object({
-    categoryName: z.string().trim().min(1).regex(/^(?!\d+$).*$/, "Category name cannot contain only numbers").optional(),
+    categoryName: z.string().trim().min(1).regex(/^(?!\d+$).*$/, "Category name cannot contain only numbers").regex(unicodeNameRegex, "Category name contains invalid characters").optional(),
     categoryStatus: z.enum(["active", "inactive"]).optional(),
     categoryPosition: z.number().nonnegative("Product price must be >= 0").optional(),
     categorySlug: z.string().trim().min(1).optional(),
