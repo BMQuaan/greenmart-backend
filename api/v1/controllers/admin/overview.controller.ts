@@ -1,6 +1,8 @@
 import Product from "../../models/product.model";
 import ProductCategoryModel from "../../models/product-category.model";
 import { Request, Response } from "express";
+import UserModel from "../../models/user.model";
+import OrderModel from "../../models/order.model";
 
 export const getCategoryProductCount = async (req: Request, res: Response) => {
   try {
@@ -29,6 +31,7 @@ export const getCategoryProductCount = async (req: Request, res: Response) => {
     const result = categories.map(cat => ({
       _id: cat._id,
       categoryName: cat.categoryName,
+      categoryImage: cat.categoryImage || "",
       productCount: countMap.get(cat._id.toString()) || 0
     }));
 
@@ -40,5 +43,31 @@ export const getCategoryProductCount = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("getCategoryProductCount error:", error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getTotalCounts = async (req: Request, res: Response) => {
+  try {
+    const [totalUsers, totalProducts, totalOrders] = await Promise.all([
+      UserModel.countDocuments({ deleted: false }),
+      Product.countDocuments(),
+      OrderModel.countDocuments()
+    ]);
+
+    return res.status(200).json({
+      code: 200,
+      message: "Total counts retrieved successfully",
+      data: {
+        totalUsers,
+        totalProducts,
+        totalOrders
+      }
+    });
+  } catch (error) {
+    console.error("Error in getTotalCounts:", error);
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error"
+    });
   }
 };

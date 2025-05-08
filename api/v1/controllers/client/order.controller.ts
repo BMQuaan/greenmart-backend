@@ -81,7 +81,7 @@ export const getOrders = async (req: Request, res: Response) => {
     let orders = await OrderModel.find({ customerID: user._id })
       .populate({
         path: "orderItemList.productID",
-        select: "productName",
+        select: "productName productImage",
       })
       .lean();
 
