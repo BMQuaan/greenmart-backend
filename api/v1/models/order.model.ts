@@ -18,6 +18,10 @@ export interface IOrder extends Document {
   orderStatus: "delivered"; 
   orderPaymentMethod: "cod";
   promotionID?: Types.ObjectId | null;
+  updateBy?: {
+    staffID: Types.ObjectId;
+    date: Date;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -53,6 +57,11 @@ const orderSchema = new Schema<IOrder>(
       ref: "Promotion",
       default: null,
     },
+    updateBy:
+      {
+        staffID: { type: Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now },
+      },
   },
   { timestamps: true }
 );

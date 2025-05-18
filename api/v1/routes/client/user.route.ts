@@ -12,6 +12,8 @@ router.post("/register", controller.register);
 
 router.post("/login", controller.login);
 
+router.post("/google-login", controller.googleLogin);
+
 router.post("/logout", controller.logout);
 
 router.get("/detail", authMiddleware.authenticateToken, controller.detail);
@@ -26,6 +28,6 @@ router.post("/password/forgot", controller.requestPasswordReset);
 
 router.post("/password/otp", controller.verifyOTP);
 
-router.post("/password/reset", authMiddleware.authenticateToken, controller.resetPasswordAfterOTP);
+router.post("/password/reset", authMiddleware.authenticateToken, controller.resetPassword);
 
 export const userRoutes : Router = router;

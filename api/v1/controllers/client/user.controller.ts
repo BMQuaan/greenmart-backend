@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import User from "../../models/user.model";
 import ForgotPasswordModel from "../../models/forgot-password.model";
 import { sendMail } from "../../../../helper/sendmail"; 
@@ -11,6 +12,7 @@ import { updateUserSchema } from "../../validations/client/user.validation";
 
 dotenv.config(); 
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 if (!JWT_SECRET) {
@@ -49,6 +51,7 @@ export const register = async (req: Request, res: Response) => {
       userName: trimmedUserName,
       userEmail: trimmedUserEmail,
       userPassword: hashedPassword,
+      loginType: "local",
     });
 
     const refreshToken = jwt.sign({ id: newUser._id }, JWT_REFRESH_SECRET, {
@@ -101,6 +104,14 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { userEmail, userPassword } = req.body;
+
+    if (!userEmail || !userPassword) {
+      return res.status(400).json({
+        code: 400,
+        message: "Please provide email and password",
+      });
+    }
+
     const trimmedUserEmail = userEmail?.trim();
 
     const user = await User.findOne({ userEmail: trimmedUserEmail, deleted: false });
@@ -111,6 +122,15 @@ export const login = async (req: Request, res: Response) => {
         message: "Email does not exist",
       });
     }
+
+    if (user.loginType !== "local" || !user.userPassword) {
+      return res.status(400).json({
+        code: 400,
+        message: "This account does not support password login",
+      });
+    }
+
+
 
     const isPasswordCorrect = await bcrypt.compare(userPassword, user.userPassword);
     if (!isPasswordCorrect) {
@@ -170,6 +190,82 @@ export const login = async (req: Request, res: Response) => {
       code: 500,
       message: "Server error",
     });
+  }
+};
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { access_token } = req.body;
+
+    if (!access_token) {
+      return res.status(400).json({ message: "Access token is required" });
+    }
+
+    const googleRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    if (!googleRes.ok) {
+      return res.status(401).json({ message: "Invalid Google access token" });
+    }
+
+    const profile = await googleRes.json();
+    const { email, name, picture } = profile;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email not found in Google profile" });
+    }
+
+    let user = await User.findOne({ userEmail: email, deleted: false });
+
+    if (!user) {
+      user = new User({
+        userName: name,
+        userEmail: email,
+        userAvatar: picture,
+        loginType: "google",
+        userRefreshTokens: [],
+      });
+    }
+
+    // Xử lý refresh tokens
+    user.userRefreshTokens = user.userRefreshTokens.filter(
+      (tokenObj) => tokenObj.expiresAt && tokenObj.expiresAt > new Date()
+    );
+
+    if (user.userRefreshTokens.length >= 3) {
+      user.userRefreshTokens.shift();
+    }
+
+    const refreshToken = jwt.sign({ id: user._id }, JWT_REFRESH_SECRET, { expiresIn: "7d" });
+    const accessToken = jwt.sign(
+      { id: user._id, userEmail: user.userEmail },
+      JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    user.userRefreshTokens.push({
+      token: refreshToken,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Google login successful",
+      accessToken,
+    });
+  } catch (error) {
+    console.error("Google login error", error);
+    return res.status(500).json({ message: "Google login failed" });
   }
 };
 
@@ -334,6 +430,11 @@ export const changePassword = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (!user.userPassword || user.loginType !== 'local') {
+      return res.status(400).json({ message: "This account does not support password change" });
+    }
+
+
     const isMatch = await bcrypt.compare(currentPassword, user.userPassword);
     if (!isMatch) {
       return res.status(401).json({ message: "Current password is incorrect" });
@@ -393,6 +494,10 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.loginType !== 'local') {
+      return res.status(400).json({ message: "This account does not support password reset via email" });
+    }
+
     const recentRequests = await ForgotPasswordModel.countDocuments({
       fpEmail: email,
       fpUsed: false,
@@ -414,10 +519,10 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     // }
 
     const forgotPassword = new ForgotPasswordModel({
+      fpUserId: user._id,
       fpEmail: email,
       fpOTP: otp,
       fpExpireAt: expireAt,
-      fpAttempts: 0,
       fpUsed: false,
     });
 
@@ -469,6 +574,10 @@ export const verifyOTP = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found." });
     }
 
+    if (user.loginType !== "local") {
+      return res.status(400).json({ message: "This account does not support password reset via OTP." });
+    }
+
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.JWT_REFRESH_SECRET as string,
@@ -509,7 +618,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
   }
 };
 
-export const resetPasswordAfterOTP = async (req: Request, res: Response) => {
+export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { newPassword } = req.body; 
     const user = req["infoUser"];
@@ -521,6 +630,11 @@ export const resetPasswordAfterOTP = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     user.userPassword = hashedPassword;
+
+    if (user.loginType === "google") {
+      user.loginType = "local";
+    }
+
     await user.save();
 
     return res.status(200).json({ message: "Password reset successfully." });

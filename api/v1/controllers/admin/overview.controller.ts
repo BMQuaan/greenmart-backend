@@ -50,7 +50,7 @@ export const getTotalCounts = async (req: Request, res: Response) => {
   try {
     const [totalUsers, totalProducts, totalOrders] = await Promise.all([
       UserModel.countDocuments({ deleted: false }),
-      Product.countDocuments(),
+      Product.countDocuments({ deleted: false }),
       OrderModel.countDocuments()
     ]);
 
