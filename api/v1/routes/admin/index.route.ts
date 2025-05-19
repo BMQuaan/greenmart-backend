@@ -5,6 +5,7 @@ import { productcategoryRoutes } from "./product-category.route";
 import { userRoutes } from "./user.route";
 import { staffRoutes } from "./staff.route";
 import { overViewRoutes } from "./overview.route";
+import { orderRoutes } from "./order.route";
 
 const adminV1Routes = (app: Express): void => {
   const version: string = "/api/v1/admin";
@@ -20,7 +21,8 @@ const adminV1Routes = (app: Express): void => {
   app.use(version + "/staffs", staffRoutes);
 
   app.use(version + "/overview", overViewRoutes);
-
+  
+  app.use(version + "/orders", orderRoutes);
 };
 
 export default adminV1Routes;

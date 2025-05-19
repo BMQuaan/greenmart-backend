@@ -123,6 +123,13 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    if (user.userStatus === "inactive") {
+      return res.status(403).json({
+        code: 403,
+        message: "This account has been deactivated",
+      });
+    }
+
     if (user.loginType !== "local" || !user.userPassword) {
       return res.status(400).json({
         code: 400,
@@ -227,6 +234,11 @@ export const googleLogin = async (req: Request, res: Response) => {
         userRefreshTokens: [],
       });
     }
+
+    if (user.userStatus === "inactive") {
+      return res.status(403).json({ message: "This account has been deactivated" });
+    }
+
 
     // Xử lý refresh tokens
     user.userRefreshTokens = user.userRefreshTokens.filter(

@@ -3,6 +3,7 @@ import ProductCategory from "../../models/product-category.model";
 import { SearchHelper } from "../../../../helper/search";
 import { uploadImageToCloudinary } from "../../../../helper/uploadCloudinary";
 import slugify from "slugify";
+import Product from "../../models/product.model";
 
 // [GET] /productcategories
 export const index = async (req: Request, res: Response) => {
@@ -194,6 +195,18 @@ export const updateCategory = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "A category cannot be its own parent" });
     }
 
+    if (categorySlug) {
+      const slugExists = await ProductCategory.findOne({
+        categorySlug,
+        deleted: false,
+        _id: { $ne: id }
+      });
+
+      if (slugExists) {
+        return res.status(400).json({ message: "Slug already exists" });
+      }
+    }
+
     let categoryImageUrl = category.categoryImage;
     if (req.file) {
       const uploadResult = await uploadImageToCloudinary(req.file.buffer, "categories");
@@ -236,6 +249,15 @@ export const deleteCategory = async (req: Request, res: Response) => {
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
+
+    const products = await Product.find({ categoryID: id, deleted: false });
+
+    if (products.length > 0) {
+      return res.status(400).json({
+        message: "Cannot delete category. There are products linked to this category."
+      });
+    }
+
 
     category.deleted = true;
     category.deletedAt = new Date();

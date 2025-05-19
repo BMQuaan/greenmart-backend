@@ -225,6 +225,15 @@ export const updateItem = async (req: Request, res: Response) => {
 
     product.productImage = productImageUrl;
 
+    if (productSlug && productSlug !== product.productSlug) {
+      const slugExist = await Product.findOne({ productSlug, _id: { $ne: id }, deleted: false });
+      if (slugExist) {
+        return res.status(400).json({ message: "Slug already exists. Please choose a different one." });
+      }
+      if (productSlug !== undefined) product.productSlug = productSlug;
+    }
+
+
     if (productName !== undefined) product.productName = productName;
     if (productPrice !== undefined) product.productPrice = productPrice;
     if (productStock !== undefined) product.productStock = productStock;
@@ -232,7 +241,7 @@ export const updateItem = async (req: Request, res: Response) => {
     if (productStatus !== undefined) product.productStatus = productStatus;
     if (productPosition !== undefined) product.productPosition = productPosition;
     if (productDiscountPercentage !== undefined) product.productDiscountPercentage = productDiscountPercentage;
-    if (productSlug !== undefined) product.productSlug = productSlug;
+    // if (productSlug !== undefined) product.productSlug = productSlug;
     if (categoryID !== undefined) product.categoryID = categoryID;
 
     product.updateBy.push({

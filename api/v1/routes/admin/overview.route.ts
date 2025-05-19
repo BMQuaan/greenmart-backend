@@ -8,5 +8,9 @@ router.get("/category", authMiddleware.authenticateStaffToken, authMiddleware.au
 
 router.get("/total", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("view_overview"), controller.getTotalCounts);
 
+router.get("/statistics", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("view_overview"), controller.getOrderStatistics);
+
+router.get("/order-today", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("view_overview"), controller.getTodayOrders);
+
 
 export const overViewRoutes : Router = router;

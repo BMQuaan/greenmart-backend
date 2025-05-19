@@ -15,9 +15,8 @@ export interface IOrder extends Document {
     phone: string;
   };
   orderItemList: IOrderItem[];
-  orderStatus: "delivered"; 
+  orderStatus: "success" | "pending" | "cancel";
   orderPaymentMethod: "cod";
-  promotionID?: Types.ObjectId | null;
   updateBy?: {
     staffID: Types.ObjectId;
     date: Date;
@@ -44,18 +43,13 @@ const orderSchema = new Schema<IOrder>(
     ],
     orderStatus: {
       type: String,
-      enum: ["delivered"],
-      default: "delivered",
+      enum: ["success", "pending", "cancel"],
+      default: "pending",
     },
     orderPaymentMethod: {
       type: String,
       enum: ["cod"],
       required: true,
-    },
-    promotionID: {
-      type: Schema.Types.ObjectId,
-      ref: "Promotion",
-      default: null,
     },
     updateBy:
       {

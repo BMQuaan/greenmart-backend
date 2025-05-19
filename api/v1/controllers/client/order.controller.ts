@@ -15,7 +15,6 @@ export const createOrder = async (req: Request, res: Response) => {
       customerInfor,
       orderItemList,
       orderPaymentMethod,
-      promotionID,
     } = req.body;
 
     if (!Array.isArray(orderItemList) || orderItemList.length === 0) {
@@ -52,7 +51,6 @@ export const createOrder = async (req: Request, res: Response) => {
       customerInfor,
       orderItemList,
       orderPaymentMethod,
-      promotionID: promotionID || null,
     });
 
     const savedOrder = await newOrder.save({ session });
