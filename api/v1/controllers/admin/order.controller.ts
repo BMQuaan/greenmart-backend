@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 // GET /api/orders 
 export const index = async (req: Request, res: Response) => {
   try {
-    const { status } = req.query;
+    const { status, keyword } = req.query;
 
     const filter: any = {};
     if (status) {
@@ -20,7 +20,20 @@ export const index = async (req: Request, res: Response) => {
       .populate("customerID", "userName")
       .sort({ createdAt: -1 });
 
-    const formattedOrders = orders.map(order => {
+    const filteredOrders = keyword
+      ? orders.filter(order => {
+          const orderIdMatch = order._id.toString().includes(keyword.toString().toLowerCase());
+
+          const customer = order.customerID as { userName?: string };
+          const userName = customer?.userName || "";
+
+          const nameMatch = userName.toLowerCase().includes(keyword.toString().toLowerCase());
+
+          return orderIdMatch || nameMatch;
+        })
+      : orders;
+
+    const formattedOrders = filteredOrders.map(order => {
       const totalAmount = order.orderItemList.reduce((total, item) => {
         const price = item.productPrice;
         const discount = item.productDiscountPercentage || 0;
