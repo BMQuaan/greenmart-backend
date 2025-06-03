@@ -17,7 +17,7 @@ const port:string | number = process.env.PORT || 3000;
 // };
 // app.use(cors(corsOptions));
 app.use(cors({
-  origin: "http://localhost:3001", // địa chỉ FE của bạn
+  origin: ["http://localhost:3001", "http://localhost:3002"], // Chấp nhận cả 3001 và 3002
   credentials: true, // Cho phép gửi cookie
 }));
  
