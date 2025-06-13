@@ -76,7 +76,13 @@ export const getOrders = async (req: Request, res: Response) => {
     const user = req["infoUser"];
     const objectSearch = SearchHelper(req.query);
 
-    let orders = await OrderModel.find({ customerID: user._id })
+    const filter: any = { customerID: user._id };
+
+    if (req.query.status && ["pending", "cancel", "success"].includes(req.query.status.toString())) {
+      filter.orderStatus = req.query.status.toString();
+    }
+
+    let orders = await OrderModel.find(filter)
       .populate({
         path: "orderItemList.productID",
         select: "productName productImage",
@@ -131,4 +137,100 @@ export const getOrders = async (req: Request, res: Response) => {
       message: "Server error",
     });
   }
+};
+
+export const getOrderById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = req["infoUser"];
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid order ID" });
+    }
+
+    const order = await OrderModel.findOne({ _id: id, customerID: user._id })
+      .populate("customerID", "userName")
+      .populate("orderItemList.productID", "productName productImage")
+      .lean();
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const products = order.orderItemList.map(item => {
+      const product = item.productID as any;
+      const price = item.productPrice;
+      const discount = item.productDiscountPercentage || 0;
+      const quantity = item.quantity;
+      const discountedPrice = price * (1 - discount / 100);
+
+      return {
+        productName: product?.productName || "Unknown",
+        productImage: product?.productImage || "",
+        productPrice: parseFloat(discountedPrice.toFixed(2)),
+        quantity,
+      };
+    });
+
+    const totalAmount = products.reduce((sum, item) => {
+      return sum + item.productPrice * item.quantity;
+    }, 0);
+
+    const response = {
+      _id: order._id,
+      customerID: order.customerID?._id,
+      customerName: (order.customerID as any)?.userName || "Unknown",
+      customerInfor: order.customerInfor,
+      products,
+      orderStatus: order.orderStatus,
+      createdAt: order.createdAt,
+      updatedBy: {
+        staffID: order.updateBy?.staffID,
+        date: order.updateBy?.date,
+      },
+      totalAmount: parseFloat(totalAmount.toFixed(2)),
+      orderPaymentMethod: order.orderPaymentMethod,
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error getting order by ID:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const cancelOrder = async (req: Request, res: Response) => {
+  try {
+    const user = req["infoUser"];
+    const orderID = req.params.id;
+
+     const order = await OrderModel.findOne({
+      _id: orderID,
+      customerID: user._id,
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.orderStatus !== "pending") {
+      return res.status(400).json({ message: "Only pending orders can be canceled" });
+    }
+
+    for (const item of order.orderItemList) {
+      await Product.findByIdAndUpdate(item.productID, {
+        $inc: { productStock: item.quantity }
+      });
+    }
+
+    order.orderStatus = "cancel";
+    await order.save();
+    return res.status(200).json({
+      code: 200,
+      message: "Order canceled successfully",
+    });
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
 };
