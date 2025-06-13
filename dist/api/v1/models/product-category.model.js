@@ -32,13 +32,8 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const mongoose_slug_updater_1 = __importDefault(require("mongoose-slug-updater"));
-mongoose_1.default.plugin(mongoose_slug_updater_1.default);
 const productCategorySchema = new mongoose_1.Schema({
     categoryParentID: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -55,12 +50,22 @@ const productCategorySchema = new mongoose_1.Schema({
     categoryPosition: { type: Number, default: 0 },
     categorySlug: {
         type: String,
-        slug: "categoryName",
         unique: true,
     },
-    createBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+    createBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+    },
+    updateBy: [
+        {
+            staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+            date: { type: Date, default: Date.now }
+        }
+    ],
+    deleteBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date }
+    },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date },
 }, {

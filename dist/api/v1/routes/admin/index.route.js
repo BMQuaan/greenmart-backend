@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const auth_route_1 = require("./auth.route");
+const product_route_1 = require("./product.route");
+const product_category_route_1 = require("./product-category.route");
+const user_route_1 = require("./user.route");
+const staff_route_1 = require("./staff.route");
+const overview_route_1 = require("./overview.route");
+const order_route_1 = require("./order.route");
+const adminV1Routes = (app) => {
+    const version = "/api/v1/admin";
+    app.use(version + "/auth", auth_route_1.authRoutes);
+    app.use(version + "/products", product_route_1.productRoutes);
+    app.use(version + "/products-category", product_category_route_1.productcategoryRoutes);
+    app.use(version + "/users", user_route_1.userRoutes);
+    app.use(version + "/staffs", staff_route_1.staffRoutes);
+    app.use(version + "/overview", overview_route_1.overViewRoutes);
+    app.use(version + "/orders", order_route_1.orderRoutes);
+};
+exports.default = adminV1Routes;

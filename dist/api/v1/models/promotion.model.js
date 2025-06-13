@@ -46,9 +46,20 @@ const promotionSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     promotionIsActive: { type: Boolean, default: true },
-    createBy: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Staff" },
+    createBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+    },
+    updateBy: [
+        {
+            staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+            date: { type: Date, default: Date.now }
+        }
+    ],
+    deleteBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date }
+    },
 }, { timestamps: true });
 const Promotion = mongoose_1.default.model("Promotion", promotionSchema, "promotions");
 exports.default = Promotion;

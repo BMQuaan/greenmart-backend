@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticateToken = void 0;
-const user_model_1 = __importDefault(require("../models/user.model"));
+const user_model_1 = __importDefault(require("../../models/user.model"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authenticateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const authHeader = req.headers.authorization;
@@ -26,7 +26,7 @@ const authenticateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             _id: decoded.id,
             deleted: false,
             userStatus: "active"
-        }).select("userName userEmail userPhone userAvatar userAddress userStatus deleted");
+        }).select("_id userName userEmail userPhone userAvatar userAddress loginType");
         if (!user) {
             return res.status(403).json({ message: "Account is invalid or has been disabled" });
         }

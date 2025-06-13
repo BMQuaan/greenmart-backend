@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.categoryTree = exports.categoryTrees = exports.index = void 0;
-const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
+const product_category_model_1 = __importDefault(require("../../models/product-category.model"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productscategory = yield product_category_model_1.default.find({
         categoryStatus: "active",
@@ -22,14 +22,14 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         .select("_id categoryName categorySlug categoryImage categoryParentID")
         .sort({ position: "desc" });
     try {
-        res.json({
+        res.status(200).json({
             code: 200,
             message: "All products-category",
             info: productscategory,
         });
     }
     catch (error) {
-        res.json({
+        res.status(400).json({
             code: 400,
             message: "Error",
         });

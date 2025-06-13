@@ -51,18 +51,17 @@ const orderSchema = new mongoose_1.Schema({
     ],
     orderStatus: {
         type: String,
-        enum: ["delivered"],
-        default: "delivered",
+        enum: ["success", "pending", "cancel"],
+        default: "pending",
     },
     orderPaymentMethod: {
         type: String,
         enum: ["cod"],
         required: true,
     },
-    promotionID: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: "Promotion",
-        default: null,
+    updateBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now },
     },
 }, { timestamps: true });
 const OrderModel = mongoose_1.default.model("Order", orderSchema, "orders");

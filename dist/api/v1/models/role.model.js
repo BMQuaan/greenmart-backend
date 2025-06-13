@@ -39,9 +39,20 @@ const roleSchema = new mongoose_1.Schema({
     roleDescription: { type: String },
     rolePermissions: { type: [String], default: [] },
     roleIsDeleted: { type: Boolean, default: false },
-    createBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" }
+    createBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+    },
+    updateBy: [
+        {
+            staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+            date: { type: Date, default: Date.now }
+        }
+    ],
+    deleteBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date }
+    }
 }, { timestamps: true });
 const Role = mongoose_1.default.model("Role", roleSchema, "roles");
 exports.default = Role;

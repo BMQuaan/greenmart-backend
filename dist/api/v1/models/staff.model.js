@@ -34,7 +34,6 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const generate_1 = require("../../../helper/generate");
 const staffSchema = new mongoose_1.Schema({
     staffName: { type: String, required: true },
     staffEmail: { type: String, required: true, unique: true },
@@ -42,19 +41,34 @@ const staffSchema = new mongoose_1.Schema({
     staffPhone: { type: String, required: true },
     staffAvatar: { type: String },
     staffAddress: { type: String },
-    staffToken: {
-        type: String,
-        default: () => (0, generate_1.generateRandomString)(30)
-    },
-    staffIsDeleted: { type: Boolean, default: false },
+    staffRefreshTokens: [
+        {
+            token: { type: String, required: true },
+            device: { type: String },
+            createdAt: { type: Date, default: Date.now },
+            expiresAt: { type: Date }
+        }
+    ],
+    deleted: { type: Boolean, default: false },
     staffStatus: {
         type: String,
         enum: ["active", "inactive"],
         default: "active"
     },
-    createBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
-    updateBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
-    deleteBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+    createBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+    },
+    updateBy: [
+        {
+            staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+            date: { type: Date, default: Date.now }
+        }
+    ],
+    deleteBy: {
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date }
+    },
     roleID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Role", required: true }
 }, { timestamps: true });
 const Staff = mongoose_1.default.model("Staff", staffSchema, "staffs");

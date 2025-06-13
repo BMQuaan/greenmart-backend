@@ -36,26 +36,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const dotenv_1 = __importDefault(require("dotenv"));
-const database = __importStar(require("./config/database"));
-const index_route_1 = __importDefault(require("./api/v1/routes/client/index.route"));
-const body_parser_1 = __importDefault(require("body-parser"));
-const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const cors_1 = __importDefault(require("cors"));
-const index_route_2 = __importDefault(require("./api/v1/routes/admin/index.route"));
-dotenv_1.default.config();
-database.connect();
-const app = (0, express_1.default)();
-const port = process.env.PORT || 3000;
-app.use((0, cors_1.default)({
-    origin: ["http://localhost:3001", "http://localhost:3002"],
-    credentials: true,
-}));
-app.use(body_parser_1.default.json());
-app.use((0, cookie_parser_1.default)());
-(0, index_route_1.default)(app);
-(0, index_route_2.default)(app);
-app.listen(port, () => {
-    console.log(`App listening on port ${port}`);
-});
+exports.userRoutes = void 0;
+const express_1 = require("express");
+const controller = __importStar(require("../../controllers/admin/user.controller"));
+const authMiddleware = __importStar(require("../../middlewares/admin/auth.middleware"));
+const upload_middleware_1 = __importDefault(require("../../middlewares/admin/upload.middleware"));
+const validateRequest_1 = __importDefault(require("../../middlewares/admin/validateRequest"));
+const user_validation_1 = require("../../validations/admin/user.validation");
+const router = (0, express_1.Router)();
+router.get("/", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("view_user"), controller.index);
+router.get("/detail/:id", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("view_user"), controller.detail);
+router.put("/update/:id", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("edit_user"), upload_middleware_1.default.single("userAvatar"), (0, validateRequest_1.default)(user_validation_1.updateUserSchema), controller.updateUser);
+router.delete("/delete/:id", authMiddleware.authenticateStaffToken, authMiddleware.authorizePermission("delete_user"), (0, validateRequest_1.default)(user_validation_1.deleteUserSchema), controller.deleteUser);
+exports.userRoutes = router;

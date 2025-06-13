@@ -46,11 +46,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detail = exports.category = exports.index = void 0;
-const product_model_1 = __importDefault(require("../../v1/models/product.model"));
-const product_category_model_1 = __importDefault(require("../../v1/models/product-category.model"));
-const productsHelper = __importStar(require("../../../helper/products"));
-const pagination_1 = require("../../../helper/pagination");
-const search_1 = require("../../../helper/search");
+const product_model_1 = __importDefault(require("../../models/product.model"));
+const product_category_model_1 = __importDefault(require("../../models/product-category.model"));
+const productsHelper = __importStar(require("../../../../helper/products"));
+const pagination_1 = require("../../../../helper/pagination");
+const search_1 = require("../../../../helper/search");
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const objectSearch = (0, search_1.SearchHelper)(req.query);
@@ -89,7 +89,7 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return (aPrice - bPrice) * direction;
             });
         }
-        res.json({
+        res.status(200).json({
             code: 200,
             message: "Products List",
             info: newProducts,
@@ -168,7 +168,7 @@ const category = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return (aPrice - bPrice) * direction;
             });
         }
-        res.json({
+        res.status(200).json({
             code: 200,
             message: `Products in category ${category.categoryName}`,
             info: newProducts,
@@ -193,7 +193,7 @@ const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             productStatus: "active"
         }).select("_id productName productPrice productImage productStock productDescription productSlug productDiscountPercentage categoryID");
         if (!product) {
-            res.json({
+            res.status(404).json({
                 code: 404,
                 message: "Product not found",
             });
@@ -211,7 +211,7 @@ const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         productObj.priceNew = productsHelper.priceNewProduct(product);
-        res.json({
+        res.status(200).json({
             code: 200,
             message: "Product detail",
             info: productObj
@@ -220,7 +220,7 @@ const detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error("Error in detail:", error);
-        res.json({
+        res.status(500).json({
             code: 500,
             message: "Internal Server Error",
         });

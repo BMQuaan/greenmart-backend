@@ -37,7 +37,12 @@ const mongoose_1 = __importStar(require("mongoose"));
 const userSchema = new mongoose_1.Schema({
     userName: { type: String, required: true },
     userEmail: { type: String, required: true, unique: true },
-    userPassword: { type: String, required: true },
+    userPassword: { type: String },
+    loginType: {
+        type: String,
+        enum: ["local", "google"],
+        required: true,
+    },
     userPhone: { type: String },
     userAvatar: { type: String },
     userAddress: { type: String },
@@ -55,14 +60,16 @@ const userSchema = new mongoose_1.Schema({
         enum: ["active", "inactive"],
         default: "active",
     },
+    updateBy: [
+        {
+            staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+            date: { type: Date, default: Date.now }
+        }
+    ],
     deleteBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: "Staff",
-    },
-    updateBy: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: "Staff",
-    },
+        staffID: { type: mongoose_1.Schema.Types.ObjectId, ref: "Staff" },
+        date: { type: Date, default: Date.now }
+    }
 }, {
     timestamps: true,
 });

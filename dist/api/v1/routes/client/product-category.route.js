@@ -33,11 +33,11 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.productRoutes = void 0;
+exports.productcategoryRoutes = void 0;
 const express_1 = require("express");
-const controller = __importStar(require("../../v1/controllers/product.controller"));
+const controller = __importStar(require("../../controllers/client/product-category.controller"));
 const router = (0, express_1.Router)();
 router.get("/", controller.index);
-router.get("/:slugCategory", controller.category);
-router.get("/detail/:slugProduct", controller.detail);
-exports.productRoutes = router;
+router.get("/categorytree", controller.categoryTrees);
+router.get("/categorytree/:slugCategory", controller.categoryTree);
+exports.productcategoryRoutes = router;

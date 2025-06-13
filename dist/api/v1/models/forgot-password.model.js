@@ -35,11 +35,15 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const forgotPasswordSchema = new mongoose_1.Schema({
+    fpUserId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
     fpEmail: { type: String, required: true },
-    fpExpireAt: { type: Date, required: true },
+    fpExpireAt: { type: Date, required: true, index: { expires: 0 } },
     fpOTP: { type: String, required: true },
-    fpAttempts: { type: Number, default: 0 },
-    fpIsUser: { type: Boolean, required: true },
+    fpUsed: { type: Boolean, default: false },
 }, { timestamps: true });
-const ForgotPasswordModel = mongoose_1.default.model("ForgotPassword", forgotPasswordSchema, "forgot_passwords");
+const ForgotPasswordModel = mongoose_1.default.model("ForgotPassword", forgotPasswordSchema, "forgot-passwords");
 exports.default = ForgotPasswordModel;
