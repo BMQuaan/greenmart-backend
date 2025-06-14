@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import OrderModel from "../../models/order.model";
+import Product from "../../models/product.model";
 import mongoose from "mongoose";
 
 // GET /api/orders 
@@ -124,6 +125,9 @@ export const getOrderById = async (req: Request, res: Response) => {
 
 // PUT /api/orders/:id/status 
 export const updateOrderStatus = async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
     const { orderStatus } = req.body;
@@ -133,26 +137,49 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const order = await OrderModel.findById(id);
+    const order = await OrderModel.findById(id).session(session);
     if (!order) {
+      await session.abortTransaction();
       return res.status(404).json({ message: "Order not found" });
     }
 
     if (order.orderStatus !== "pending") {
+      await session.abortTransaction();
       return res.status(400).json({ message: "Only orders with 'pending' status can be updated" });
     }
 
+    if (orderStatus === "cancel") {
+      for (const item of order.orderItemList) {
+        const product = await Product.findById(item.productID).session(session);
+
+        if (!product) {
+          await session.abortTransaction();
+          return res.status(404).json({ message: `Product not found: ${item.productID}` });
+        }
+
+        product.productStock += item.quantity;
+        await product.save({ session });
+      }
+    }
+
+    // Cập nhật trạng thái đơn hàng
     order.orderStatus = orderStatus;
     order.updateBy = {
       staffID: req["infoStaff"]._id,
       date: new Date(),
     };
 
-    await order.save();
+    await order.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({ message: "Order status updated successfully", order });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error updating order status:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+

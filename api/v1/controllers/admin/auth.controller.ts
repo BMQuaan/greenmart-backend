@@ -52,7 +52,7 @@ export const login = async (req: Request, res: Response) => {
         role: staff.roleID._id, 
       },
       JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "6h" }
     );
 
     const refreshToken = jwt.sign(
@@ -169,7 +169,7 @@ export const refreshStaffAccessToken = async (req: Request, res: Response) => {
         role: staff.roleID._id
       },
       process.env.JWT_SECRET as string,
-      { expiresIn: "15m" }
+      { expiresIn: "6h" }
     );
 
     res.status(200).json({

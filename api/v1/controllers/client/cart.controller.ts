@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import mongoose, { Types } from "mongoose";
 import CartModel from "../../models/cart.model";
+import Product from "../../models/product.model";
 
 export const index = async (req: Request, res: Response) => {
     try {
@@ -37,6 +38,12 @@ export const addToCart = async (req: Request, res: Response) => {
     }
 
     const productObjId = new Types.ObjectId(productID as string);
+
+    const product = await Product.findOne({ _id: productObjId, deleted: false, productStatus: "active" });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found or inactive" });
+    }
+
 
     let cart = await CartModel.findOne({ userID: userID });
     if (!cart) {

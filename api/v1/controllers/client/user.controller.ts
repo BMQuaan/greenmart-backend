@@ -70,7 +70,7 @@ export const register = async (req: Request, res: Response) => {
     const accessToken = jwt.sign(
       { id: newUser._id, email: newUser.userEmail },
       JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "6h" }
     );
 
     res.cookie("refreshToken", refreshToken, {
@@ -150,7 +150,7 @@ export const login = async (req: Request, res: Response) => {
     const accessToken = jwt.sign(
       { id: user.id, userEmail: user.userEmail },
       JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "6h" }
     );
 
     const refreshToken = jwt.sign(
@@ -253,7 +253,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     const accessToken = jwt.sign(
       { id: user._id, userEmail: user.userEmail },
       JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "6h" }
     );
 
     user.userRefreshTokens.push({
@@ -332,7 +332,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
     const newAccessToken = jwt.sign(
       { id: user._id, email: user.userEmail },
       process.env.JWT_SECRET as string,
-      { expiresIn: '15m' }
+      { expiresIn: "6h" }
     );
 
     res.status(200).json({ accessToken: newAccessToken });
