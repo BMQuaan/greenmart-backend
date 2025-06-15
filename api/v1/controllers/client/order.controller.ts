@@ -29,9 +29,11 @@ export const createOrder = async (req: Request, res: Response) => {
     for (const item of orderItemList) {
       const product = await Product.findById(item.productID).session(session);
 
-      if (!product) {
+      if (!product || product.deleted || product.productStatus !== "active") {
         await session.abortTransaction();
-        return res.status(404).json({ message: `Product not found: ${item.productID}` });
+        return res.status(400).json({
+          message: `Product is not available!`,
+        });
       }
 
       if (product.productStock < item.quantity) {
