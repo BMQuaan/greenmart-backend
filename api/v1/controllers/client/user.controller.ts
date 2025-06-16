@@ -295,12 +295,13 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
     const user = await User.findOne({
       _id: decoded.id,
       deleted: false,
+      userStatus: "active",
       'userRefreshTokens.token': oldRefreshToken,
       'userRefreshTokens.expiresAt': { $gt: new Date() },
     });
 
     if (!user) {
-      return res.sendStatus(403);
+      return res.sendStatus(403).json({ message: "Account is invalid or has been disabled" });
     }
 
     user.userRefreshTokens = user.userRefreshTokens.filter(
@@ -500,10 +501,10 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ userEmail: email, deleted: false });
+    const user = await User.findOne({ userEmail: email, deleted: false, userStatus: "active" });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found or inactive" });
     }
 
     if (user.loginType !== 'local') {
@@ -581,7 +582,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "OTP has expired." });
     }
 
-    const user = await User.findOne({ userEmail: email });
+    const user = await User.findOne({ userEmail: email, deleted: false, userStatus: "active" });
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
