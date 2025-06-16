@@ -239,7 +239,7 @@ const refreshAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, funct
             'userRefreshTokens.expiresAt': { $gt: new Date() },
         });
         if (!user) {
-            return res.sendStatus(403).json({ message: "Account is invalid or has been disabled" });
+            return res.status(403).json({ message: "Account is invalid or has been disabled" });
         }
         user.userRefreshTokens = user.userRefreshTokens.filter((tokenObj) => tokenObj.token !== oldRefreshToken);
         const newRefreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
