@@ -48,6 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.clearCart = exports.deleteFromCart = exports.updateQuantity = exports.addToCart = exports.index = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const cart_model_1 = __importDefault(require("../../models/cart.model"));
+const product_model_1 = __importDefault(require("../../models/product.model"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userID = req["infoUser"]._id;
@@ -78,6 +79,10 @@ const addToCart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return res.status(400).json({ message: "Invalid product" });
     }
     const productObjId = new mongoose_1.Types.ObjectId(productID);
+    const product = yield product_model_1.default.findOne({ _id: productObjId, deleted: false, productStatus: "active" });
+    if (!product) {
+        return res.status(404).json({ message: "Product not found or inactive" });
+    }
     let cart = yield cart_model_1.default.findOne({ userID: userID });
     if (!cart) {
         cart = new cart_model_1.default({

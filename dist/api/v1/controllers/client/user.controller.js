@@ -71,7 +71,7 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         ];
         yield newUser.save();
-        const accessToken = jsonwebtoken_1.default.sign({ id: newUser._id, email: newUser.userEmail }, JWT_SECRET, { expiresIn: "15m" });
+        const accessToken = jsonwebtoken_1.default.sign({ id: newUser._id, email: newUser.userEmail }, JWT_SECRET, { expiresIn: "6h" });
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
@@ -130,7 +130,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 message: "Incorrect information",
             });
         }
-        const accessToken = jsonwebtoken_1.default.sign({ id: user.id, userEmail: user.userEmail }, JWT_SECRET, { expiresIn: "15m" });
+        const accessToken = jsonwebtoken_1.default.sign({ id: user.id, userEmail: user.userEmail }, JWT_SECRET, { expiresIn: "6h" });
         const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
         user.userRefreshTokens = user.userRefreshTokens.filter(tokenObj => {
             return tokenObj.expiresAt && tokenObj.expiresAt > new Date();
@@ -201,7 +201,7 @@ const googleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             user.userRefreshTokens.shift();
         }
         const refreshToken = jsonwebtoken_1.default.sign({ id: user._id }, JWT_REFRESH_SECRET, { expiresIn: "7d" });
-        const accessToken = jsonwebtoken_1.default.sign({ id: user._id, userEmail: user.userEmail }, JWT_SECRET, { expiresIn: "15m" });
+        const accessToken = jsonwebtoken_1.default.sign({ id: user._id, userEmail: user.userEmail }, JWT_SECRET, { expiresIn: "6h" });
         user.userRefreshTokens.push({
             token: refreshToken,
             createdAt: new Date(),
@@ -255,7 +255,7 @@ const refreshAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, funct
             sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-        const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id, email: user.userEmail }, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id, email: user.userEmail }, process.env.JWT_SECRET, { expiresIn: "6h" });
         res.status(200).json({ accessToken: newAccessToken });
     }
     catch (err) {

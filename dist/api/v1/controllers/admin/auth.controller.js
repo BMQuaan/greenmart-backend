@@ -56,7 +56,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             id: staff._id,
             email: staff.staffEmail,
             role: staff.roleID._id,
-        }, JWT_SECRET, { expiresIn: "15m" });
+        }, JWT_SECRET, { expiresIn: "6h" });
         const refreshToken = jsonwebtoken_1.default.sign({ id: staff._id }, JWT_REFRESH_SECRET, { expiresIn: "7d" });
         staff.staffRefreshTokens = staff.staffRefreshTokens.filter(tokenObj => tokenObj.expiresAt && tokenObj.expiresAt > new Date());
         if (staff.staffRefreshTokens.length >= 3) {
@@ -136,7 +136,7 @@ const refreshStaffAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, 
             id: staff._id,
             email: staff.staffEmail,
             role: staff.roleID._id
-        }, process.env.JWT_SECRET, { expiresIn: "15m" });
+        }, process.env.JWT_SECRET, { expiresIn: "6h" });
         res.status(200).json({
             accessToken: newAccessToken,
             info: {

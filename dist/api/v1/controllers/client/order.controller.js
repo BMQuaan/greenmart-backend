@@ -31,9 +31,11 @@ const createOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
         for (const item of orderItemList) {
             const product = yield product_model_1.default.findById(item.productID).session(session);
-            if (!product) {
+            if (!product || product.deleted || product.productStatus !== "active") {
                 yield session.abortTransaction();
-                return res.status(404).json({ message: `Product not found: ${item.productID}` });
+                return res.status(400).json({
+                    message: `Product is not available!`,
+                });
             }
             if (product.productStock < item.quantity) {
                 yield session.abortTransaction();

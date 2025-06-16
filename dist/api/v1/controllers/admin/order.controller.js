@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateOrderStatus = exports.getOrderById = exports.index = void 0;
 const order_model_1 = __importDefault(require("../../models/order.model"));
+const product_model_1 = __importDefault(require("../../models/product.model"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -118,6 +119,8 @@ const getOrderById = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.getOrderById = getOrderById;
 const updateOrderStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const session = yield mongoose_1.default.startSession();
+    session.startTransaction();
     try {
         const { id } = req.params;
         const { orderStatus } = req.body;
@@ -125,22 +128,39 @@ const updateOrderStatus = (req, res) => __awaiter(void 0, void 0, void 0, functi
         if (!validStatuses.includes(orderStatus)) {
             return res.status(400).json({ message: "Invalid status value" });
         }
-        const order = yield order_model_1.default.findById(id);
+        const order = yield order_model_1.default.findById(id).session(session);
         if (!order) {
+            yield session.abortTransaction();
             return res.status(404).json({ message: "Order not found" });
         }
         if (order.orderStatus !== "pending") {
+            yield session.abortTransaction();
             return res.status(400).json({ message: "Only orders with 'pending' status can be updated" });
+        }
+        if (orderStatus === "cancel") {
+            for (const item of order.orderItemList) {
+                const product = yield product_model_1.default.findById(item.productID).session(session);
+                if (!product) {
+                    yield session.abortTransaction();
+                    return res.status(404).json({ message: `Product not found: ${item.productID}` });
+                }
+                product.productStock += item.quantity;
+                yield product.save({ session });
+            }
         }
         order.orderStatus = orderStatus;
         order.updateBy = {
             staffID: req["infoStaff"]._id,
             date: new Date(),
         };
-        yield order.save();
+        yield order.save({ session });
+        yield session.commitTransaction();
+        session.endSession();
         res.status(200).json({ message: "Order status updated successfully", order });
     }
     catch (error) {
+        yield session.abortTransaction();
+        session.endSession();
         console.error("Error updating order status:", error);
         res.status(500).json({ message: "Internal server error" });
     }
