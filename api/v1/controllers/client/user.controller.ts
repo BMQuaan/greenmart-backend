@@ -301,7 +301,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.sendStatus(403).json({ message: "Account is invalid or has been disabled" });
+      return res.status(403).json({ message: "Account is invalid or has been disabled" });
     }
 
     user.userRefreshTokens = user.userRefreshTokens.filter(

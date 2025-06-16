@@ -234,11 +234,12 @@ const refreshAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const user = yield user_model_1.default.findOne({
             _id: decoded.id,
             deleted: false,
+            userStatus: "active",
             'userRefreshTokens.token': oldRefreshToken,
             'userRefreshTokens.expiresAt': { $gt: new Date() },
         });
         if (!user) {
-            return res.sendStatus(403);
+            return res.sendStatus(403).json({ message: "Account is invalid or has been disabled" });
         }
         user.userRefreshTokens = user.userRefreshTokens.filter((tokenObj) => tokenObj.token !== oldRefreshToken);
         const newRefreshToken = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
@@ -397,9 +398,9 @@ exports.logout = logout;
 const requestPasswordReset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email } = req.body;
-        const user = yield user_model_1.default.findOne({ userEmail: email, deleted: false });
+        const user = yield user_model_1.default.findOne({ userEmail: email, deleted: false, userStatus: "active" });
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "User not found or inactive" });
         }
         if (user.loginType !== 'local') {
             return res.status(400).json({ message: "This account does not support password reset via email" });
@@ -460,7 +461,7 @@ const verifyOTP = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (forgotPassword.fpExpireAt < new Date()) {
             return res.status(400).json({ message: "OTP has expired." });
         }
-        const user = yield user_model_1.default.findOne({ userEmail: email });
+        const user = yield user_model_1.default.findOne({ userEmail: email, deleted: false, userStatus: "active" });
         if (!user) {
             return res.status(404).json({ message: "User not found." });
         }
