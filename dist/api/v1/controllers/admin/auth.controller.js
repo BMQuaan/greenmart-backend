@@ -72,7 +72,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -129,7 +129,7 @@ const refreshStaffAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, 
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -226,7 +226,7 @@ const logoutStaff = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.clearCookie("refreshToken", {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
         });
         return res.status(200).json("Logged out!");

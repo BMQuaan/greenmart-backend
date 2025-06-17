@@ -77,7 +77,7 @@ export const register = async (req: Request, res: Response) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: COOKIE_SECURE, 
-      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      sameSite: COOKIE_SECURE ? "none" : "strict", 
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -181,7 +181,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: COOKIE_SECURE, 
-      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      sameSite: COOKIE_SECURE ? "none" : "strict", 
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -268,7 +268,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: COOKIE_SECURE, 
-      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      sameSite: COOKIE_SECURE ? "none" : "strict", 
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -327,7 +327,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: COOKIE_SECURE, 
-      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      sameSite: COOKIE_SECURE ? "none" : "strict", 
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -488,7 +488,7 @@ export const logout = async (req: Request, res: Response) => {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: COOKIE_SECURE, 
-      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      sameSite: COOKIE_SECURE ? "none" : "strict", 
       path: "/",
     });
 
@@ -618,7 +618,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: COOKIE_SECURE, 
-      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      sameSite: COOKIE_SECURE ? "none" : "strict", 
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

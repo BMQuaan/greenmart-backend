@@ -76,7 +76,7 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -148,7 +148,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -212,7 +212,7 @@ const googleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -254,7 +254,7 @@ const refreshAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, funct
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
@@ -386,7 +386,7 @@ const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.clearCookie("refreshToken", {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
         });
         return res.status(200).json("Logged out!");
@@ -486,7 +486,7 @@ const verifyOTP = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: COOKIE_SECURE,
-            sameSite: COOKIE_SECURE ? "none" : "lax",
+            sameSite: COOKIE_SECURE ? "none" : "strict",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
