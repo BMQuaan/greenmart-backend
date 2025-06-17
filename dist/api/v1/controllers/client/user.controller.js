@@ -27,6 +27,7 @@ dotenv_1.default.config();
 const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
 if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
 }
@@ -74,9 +75,9 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const accessToken = jsonwebtoken_1.default.sign({ id: newUser._id, email: newUser.userEmail }, JWT_SECRET, { expiresIn: "6h" });
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.status(200).json({
@@ -146,9 +147,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         yield user.save();
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         return res.status(200).json({
@@ -210,8 +211,9 @@ const googleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         yield user.save();
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: "strict",
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         return res.status(200).json({
@@ -251,9 +253,9 @@ const refreshAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, funct
         yield user.save();
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         const newAccessToken = jsonwebtoken_1.default.sign({ id: user._id, email: user.userEmail }, process.env.JWT_SECRET, { expiresIn: "6h" });
@@ -383,8 +385,8 @@ const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            secure: false,
-            sameSite: "strict",
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
         });
         return res.status(200).json("Logged out!");
@@ -483,9 +485,9 @@ const verifyOTP = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         yield user.save();
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         forgotPassword.fpUsed = true;

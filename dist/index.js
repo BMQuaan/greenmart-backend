@@ -49,7 +49,7 @@ database.connect();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:3001", "http://localhost:3002", "http://103.155.161.125:3001", "http://103.155.161.125:3001"],
+    origin: ["http://localhost:3001", "http://localhost:3002", "http://103.155.161.125:3001", "http://103.155.161.125:3002"],
     credentials: true,
 }));
 app.use(body_parser_1.default.json());

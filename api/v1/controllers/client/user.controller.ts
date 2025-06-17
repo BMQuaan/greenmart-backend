@@ -15,6 +15,7 @@ dotenv.config();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
+const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
@@ -75,9 +76,9 @@ export const register = async (req: Request, res: Response) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: COOKIE_SECURE, 
+      sameSite: COOKIE_SECURE ? "none" : "lax", 
       path: "/",
-      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -179,9 +180,9 @@ export const login = async (req: Request, res: Response) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: COOKIE_SECURE, 
+      sameSite: COOKIE_SECURE ? "none" : "lax", 
       path: "/",
-      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -266,8 +267,9 @@ export const googleLogin = async (req: Request, res: Response) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, 
-      sameSite: "strict",
+      secure: COOKIE_SECURE, 
+      sameSite: COOKIE_SECURE ? "none" : "lax", 
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -324,9 +326,9 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: COOKIE_SECURE, 
+      sameSite: COOKIE_SECURE ? "none" : "lax", 
       path: "/",
-      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -485,8 +487,8 @@ export const logout = async (req: Request, res: Response) => {
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: COOKIE_SECURE, 
+      sameSite: COOKIE_SECURE ? "none" : "lax", 
       path: "/",
     });
 
@@ -615,9 +617,9 @@ export const verifyOTP = async (req: Request, res: Response) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: COOKIE_SECURE, 
+      sameSite: COOKIE_SECURE ? "none" : "lax", 
       path: "/",
-      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 

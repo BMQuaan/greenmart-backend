@@ -20,6 +20,7 @@ require("../../models/role.model");
 const uploadCloudinary_1 = require("../../../../helper/uploadCloudinary");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const COOKIE_SECURE = process.env.COOKIE_SECURE === "true";
 if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
 }
@@ -70,9 +71,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         yield staff.save();
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         return res.status(200).json({
@@ -127,9 +128,9 @@ const refreshStaffAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, 
         yield staff.save();
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
-            secure: false,
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
-            sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         const newAccessToken = jsonwebtoken_1.default.sign({
@@ -224,8 +225,8 @@ const logoutStaff = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         yield staff_model_1.default.updateOne({ 'staffRefreshTokens.token': refreshToken }, { $pull: { staffRefreshTokens: { token: refreshToken } } });
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            secure: false,
-            sameSite: "strict",
+            secure: COOKIE_SECURE,
+            sameSite: COOKIE_SECURE ? "none" : "lax",
             path: "/",
         });
         return res.status(200).json("Logged out!");
