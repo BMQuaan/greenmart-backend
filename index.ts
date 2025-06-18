@@ -9,7 +9,7 @@ import adminV1Routes from "./api/v1/routes/admin/index.route";
 dotenv.config();
 database.connect();
 const app:Express = express();
-const port:string | number = process.env.PORT || 3000;
+const port: number = parseInt(process.env.PORT || "3000", 10);
 
 // var corsOptions = {
 //   origin: "http://example.com",
@@ -28,6 +28,7 @@ app.use(cookieParser());
 clientV1Routes(app);
 adminV1Routes(app);
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`App listening on port ${port}`);
 });
+
