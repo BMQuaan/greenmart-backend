@@ -126,6 +126,7 @@ export const refreshStaffAccessToken = async (req: Request, res: Response) => {
     const staff = await Staff.findOne({
       _id: decoded.id,
       deleted: false,
+      staffStatus: "active",
       "staffRefreshTokens.token": oldRefreshToken,
       "staffRefreshTokens.expiresAt": { $gt: new Date() }
     }).populate({

@@ -109,6 +109,7 @@ const refreshStaffAccessToken = (req, res) => __awaiter(void 0, void 0, void 0, 
         const staff = yield staff_model_1.default.findOne({
             _id: decoded.id,
             deleted: false,
+            staffStatus: "active",
             "staffRefreshTokens.token": oldRefreshToken,
             "staffRefreshTokens.expiresAt": { $gt: new Date() }
         }).populate({
